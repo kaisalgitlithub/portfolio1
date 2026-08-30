@@ -210,6 +210,7 @@
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
     font-size:10.5px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.06em;
   }
+  footer.sitefoot .foot-actions{ display:flex; gap:16px; flex-wrap:wrap; }
   footer.sitefoot button{ background:none; border:none; color:var(--gray-light); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; padding:0; }
   footer.sitefoot button:hover{ color:var(--black); text-decoration:underline; }
 
@@ -310,20 +311,23 @@
 
     <section id="info">
       <h1 class="section-title">Info</h1>
-      <div class="editable" id="bioText" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Bio"></div>
-      <p class="field-hint">Click the text above to edit your bio. It saves automatically.</p>
+      <div class="editable" id="bioText" contenteditable="false" role="textbox" aria-multiline="true" aria-label="Bio"></div>
+      <p class="field-hint" id="bioHint">Click the text above to edit your bio. It saves automatically.</p>
     </section>
 
     <section id="contact">
       <h1 class="section-title">Contact</h1>
-      <div class="editable" id="contactText" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Contact details"></div>
-      <p class="field-hint">Click the text above to edit. It saves automatically.</p>
+      <div class="editable" id="contactText" contenteditable="false" role="textbox" aria-multiline="true" aria-label="Contact details"></div>
+      <p class="field-hint" id="contactHint">Click the text above to edit. It saves automatically.</p>
     </section>
   </main>
 
   <footer class="sitefoot">
     <span>© <span id="year"></span> Portfolio</span>
-    <button id="resetBtn" type="button">Reset gallery</button>
+    <span class="foot-actions">
+      <button id="authBtn" type="button">Sign in to edit</button>
+      <button id="resetBtn" type="button">Reset gallery</button>
+    </span>
   </footer>
 
   <button class="fab" id="fabAdd" type="button" aria-label="Add work">+</button>
@@ -362,7 +366,35 @@
   </div>
 </div>
 
+<!-- Sign-in modal (owner only — controls who can add/edit/delete) -->
+<div class="modal-backdrop" id="authModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <button class="modal-close" id="authModalClose" aria-label="Close">×</button>
+    <h2 id="authModalTitle">Sign in</h2>
+    <form id="authForm">
+      <div class="field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" required autocomplete="current-password">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="authCancelBtn">Cancel</button>
+        <button type="submit" class="btn" id="authSubmitBtn">Sign in</button>
+      </div>
+      <p class="modal-status" id="authModalStatus"></p>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Firebase (compat build) — powers the live gallery/bio/contact storage -->
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-auth-compat.js"></script>
 
 <script>
 (function(){
@@ -379,7 +411,30 @@
   var CLOUDINARY_UPLOAD_PRESET = "kaisal";
   var CLOUDINARY_MAX_BYTES = 10 * 1024 * 1024; // 10MB — Cloudinary's default unsigned cap
 
-  var state = { items: [], category: "ALL", indexOpen: false, pendingImage: null, setWidth: 0 };
+  // Firebase — paste the config object from Project settings → Your apps →
+  // Web app (</>) here. Everyone can read the gallery/bio/contact; only a
+  // user you create in Authentication → Users can sign in to add/edit/delete
+  // (enforced by Firestore security rules, not by this file).
+  var FIREBASE_CONFIG = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+  var db = null, auth = null;
+  if(FIREBASE_CONFIG.apiKey.indexOf("PASTE_") !== 0){
+    try {
+      var fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+      db = fbApp.firestore();
+      auth = fbApp.auth();
+    } catch(e){
+      console.error("Firebase failed to initialize — check FIREBASE_CONFIG.", e);
+    }
+  }
+
+  var state = { items: [], category: "ALL", indexOpen: false, pendingImage: null, setWidth: 0, loadingGallery: true, isOwner: false, ownerEmail: "" };
 
   var els = {};
   function q(id){ return document.getElementById(id); }
@@ -406,6 +461,13 @@
     els.uploadForm = q("uploadForm");
     els.modalStatus = q("modalStatus");
     els.submitBtn = q("submitBtn");
+    els.addWorkBtn = q("addWorkBtn");
+    els.fabAdd = q("fabAdd");
+    els.resetBtn = q("resetBtn");
+    els.authBtn = q("authBtn");
+    els.authModalBackdrop = q("authModalBackdrop");
+    els.bioHint = q("bioHint");
+    els.contactHint = q("contactHint");
 
     q("year").textContent = new Date().getFullYear();
     wireNav();
@@ -413,13 +475,14 @@
     wireFilmstrip();
     wireModal();
     wireEditableFields();
-    q("resetBtn").addEventListener("click", handleReset);
+    wireAuth();
+    els.resetBtn.addEventListener("click", handleReset);
 
     init();
   });
 
-  function storageAvailable(){
-    return typeof window.storage !== "undefined" && window.storage;
+  function cloudAvailable(){
+    return !!db;
   }
 
   function showToast(msg, isError){
@@ -431,82 +494,67 @@
     showToast._t = setTimeout(function(){ els.toast.classList.remove("show"); }, 2600);
   }
 
-  /* ---------------- Storage helpers ---------------- */
-  function listItemKeys(){
-    if(!storageAvailable()) return Promise.resolve([]);
-    return window.storage.list(ITEM_PREFIX, true)
-      .then(function(res){ return (res && res.keys) ? res.keys : []; })
-      .catch(function(){ return []; });
-  }
-  function getItem(key){
-    if(!storageAvailable()) return Promise.resolve(null);
-    return window.storage.get(key, true)
-      .then(function(res){
-        if(!res || !res.value) return null;
-        try { return JSON.parse(res.value); } catch(e){ return null; }
+  /* ---------------- Storage helpers (Firestore) ---------------- */
+  function listWorks(){
+    if(!cloudAvailable()) return Promise.resolve([]);
+    return db.collection("works").orderBy("createdAt", "asc").get()
+      .then(function(snap){
+        var items = [];
+        snap.forEach(function(doc){ items.push(Object.assign({ key: doc.id }, doc.data())); });
+        return items;
       })
+      .catch(function(err){ console.error(err); return []; });
+  }
+  function saveWork(key, obj){
+    if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured — check FIREBASE_CONFIG."));
+    return db.collection("works").doc(key).set(obj);
+  }
+  function deleteWork(key){
+    if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured."));
+    return db.collection("works").doc(key).delete();
+  }
+  function getText(key){
+    if(!cloudAvailable()) return Promise.resolve(null);
+    return db.collection("site").doc(key).get()
+      .then(function(doc){ return (doc.exists && doc.data().value) ? doc.data().value : null; })
       .catch(function(){ return null; });
   }
-  function saveItem(key, obj){
-    if(!storageAvailable()) return Promise.reject(new Error("Storage unavailable"));
-    return window.storage.set(key, JSON.stringify(obj), true);
-  }
-  function deleteItem(key){
-    if(!storageAvailable()) return Promise.reject(new Error("Storage unavailable"));
-    return window.storage.delete(key, true);
-  }
-  function getText(key, shared){
-    if(!storageAvailable()) return Promise.resolve(null);
-    return window.storage.get(key, !!shared)
-      .then(function(res){ return (res && typeof res.value === "string") ? res.value : null; })
-      .catch(function(){ return null; });
-  }
-  function setText(key, value, shared){
-    if(!storageAvailable()) return Promise.reject(new Error("Storage unavailable"));
-    return window.storage.set(key, value, !!shared);
+  function setText(key, value){
+    if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured."));
+    return db.collection("site").doc(key).set({ value: value });
   }
 
   /* ---------------- Init / load ---------------- */
   function init(){
-    if(!storageAvailable()){
-      showToast("Storage isn't available in this preview — uploads won't be saved.", true);
+    if(!cloudAvailable()){
+      showToast("Firebase isn't configured yet — see FIREBASE_CONFIG in the code.", true);
     }
     loadGallery();
     loadInfoAndContact();
   }
 
   function loadGallery(){
-    listItemKeys().then(function(keys){
-      if(!keys.length){
-        state.items = [];
-        render();
-        return;
-      }
-      state.items = keys.map(function(k){ return { key:k, loading:true }; });
+    state.loadingGallery = true;
+    render();
+    listWorks().then(function(items){
+      state.items = items;
+      state.loadingGallery = false;
       render();
-      keys.forEach(function(key){
-        getItem(key).then(function(data){
-          var idx = state.items.findIndex(function(i){ return i.key === key; });
-          if(idx === -1) return;
-          state.items[idx] = data ? Object.assign({ key:key }, data) : { key:key, error:true };
-          render();
-        });
-      });
     });
   }
 
   function loadInfoAndContact(){
-    getText("info-bio", true).then(function(val){
+    getText("info-bio").then(function(val){
       els.bioText.textContent = val || "Write a short bio here — your background, focus, and the kind of work you take on. Click to edit.";
     });
-    getText("contact-info", true).then(function(val){
+    getText("contact-info").then(function(val){
       els.contactText.textContent = val || "Add how people can reach you — email, phone, or social links. Click to edit.";
     });
   }
 
   /* ---------------- Rendering ---------------- */
   function loadedItems(){
-    return state.items.filter(function(i){ return !i.loading && !i.error; });
+    return state.items;
   }
 
   function filteredItems(){
@@ -556,13 +604,14 @@
   }
 
   function renderGrid(){
-    var loading = state.items.some(function(i){ return i.loading; });
+    var loading = state.loadingGallery;
     var filtered = filteredItems();
     els.grid.classList.remove("looping");
 
     if(!loading && filtered.length === 0 && state.items.length === 0){
       els.grid.innerHTML = '<div class="empty-state"><p>No work yet</p>' +
-        '<button class="btn" type="button" id="emptyAddBtn">+ Add your first piece</button></div>';
+        (state.isOwner ? '<button class="btn" type="button" id="emptyAddBtn">+ Add your first piece</button>' : '') +
+        '</div>';
       var eb = q("emptyAddBtn");
       if(eb) eb.addEventListener("click", openModal);
       toggleScrollArrows(false);
@@ -578,9 +627,8 @@
     var itemsHtml = filtered.map(tileHtml).join("");
 
     if(loading){
-      var skeletonCount = state.items.filter(function(i){ return i.loading; }).length;
       var skeletons = "";
-      for(var s=0; s<skeletonCount; s++){ skeletons += skeletonHtml(); }
+      for(var s=0; s<3; s++){ skeletons += skeletonHtml(); }
       els.grid.innerHTML = itemsHtml + skeletons;
       toggleScrollArrows(false);
     } else {
@@ -615,9 +663,12 @@
   }
 
   function tileHtml(item){
+    var delBtn = state.isOwner
+      ? '<button class="tile-del" type="button" data-key="'+escapeAttr(item.key)+'" aria-label="Delete this piece">×</button>'
+      : '';
     return '<div class="tile" data-key="'+escapeAttr(item.key)+'">' +
       '<div class="tile-img"><img src="'+item.image+'" alt="'+escapeAttr(item.title || "")+'" loading="lazy"></div>' +
-      '<button class="tile-del" type="button" data-key="'+escapeAttr(item.key)+'" aria-label="Delete this piece">×</button>' +
+      delBtn +
       '<div class="tile-caption">' +
         '<div class="tile-title">'+escapeHtml(item.title || "Untitled")+'</div>' +
         '<div class="tile-cat">'+escapeHtml([item.category, item.subtitle].filter(Boolean).join(" · "))+'</div>' +
@@ -723,8 +774,8 @@
   }
 
   function wireWorkControls(){
-    q("addWorkBtn").addEventListener("click", openModal);
-    q("fabAdd").addEventListener("click", openModal);
+    els.addWorkBtn.addEventListener("click", openModal);
+    els.fabAdd.addEventListener("click", openModal);
     els.categoryFilter.addEventListener("change", function(){
       state.category = els.categoryFilter.value;
       renderGrid();
@@ -733,6 +784,78 @@
       state.indexOpen = !state.indexOpen;
       renderIndex();
     });
+  }
+
+  /* ---------------- Auth (owner-only editing) ---------------- */
+  function applyOwnerUI(){
+    var owner = state.isOwner;
+    els.addWorkBtn.style.display = owner ? "" : "none";
+    els.fabAdd.style.display = owner ? "" : "none";
+    els.resetBtn.style.display = owner ? "" : "none";
+    els.bioText.setAttribute("contenteditable", owner ? "true" : "false");
+    els.contactText.setAttribute("contenteditable", owner ? "true" : "false");
+    if(els.bioHint) els.bioHint.style.display = owner ? "" : "none";
+    if(els.contactHint) els.contactHint.style.display = owner ? "" : "none";
+    els.authBtn.textContent = owner ? ("Sign out (" + state.ownerEmail + ")") : "Sign in to edit";
+    renderGrid();
+  }
+
+  function openAuthModal(){
+    q("authForm").reset();
+    q("authModalStatus").textContent = "";
+    els.authModalBackdrop.classList.add("open");
+    setTimeout(function(){ q("authEmail").focus(); }, 30);
+  }
+  function closeAuthModal(){
+    els.authModalBackdrop.classList.remove("open");
+  }
+
+  function wireAuth(){
+    applyOwnerUI(); // start signed-out until Firebase confirms otherwise
+
+    els.authBtn.addEventListener("click", function(){
+      if(state.isOwner){
+        if(auth) auth.signOut();
+      } else {
+        openAuthModal();
+      }
+    });
+    q("authModalClose").addEventListener("click", closeAuthModal);
+    q("authCancelBtn").addEventListener("click", closeAuthModal);
+    els.authModalBackdrop.addEventListener("click", function(e){
+      if(e.target === els.authModalBackdrop) closeAuthModal();
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && els.authModalBackdrop.classList.contains("open")) closeAuthModal();
+    });
+    q("authForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      var statusEl = q("authModalStatus");
+      if(!auth){
+        statusEl.textContent = "Firebase isn't configured — check FIREBASE_CONFIG in the code.";
+        statusEl.classList.add("err");
+        return;
+      }
+      var email = q("authEmail").value.trim();
+      var password = q("authPassword").value;
+      statusEl.textContent = "Signing in…";
+      statusEl.classList.remove("err");
+      auth.signInWithEmailAndPassword(email, password).then(function(){
+        closeAuthModal();
+        showToast("Signed in");
+      }).catch(function(err){
+        statusEl.textContent = err.message || "Sign-in failed.";
+        statusEl.classList.add("err");
+      });
+    });
+
+    if(auth){
+      auth.onAuthStateChanged(function(user){
+        state.isOwner = !!user;
+        state.ownerEmail = user ? user.email : "";
+        applyOwnerUI();
+      });
+    }
   }
 
   function wireEditableFields(){
@@ -747,8 +870,9 @@
       document.execCommand("insertText", false, text);
     });
     el.addEventListener("blur", function(){
+      if(!state.isOwner) return;
       var text = el.textContent.trim();
-      setText(key, text, true).then(function(){
+      setText(key, text).then(function(){
         showToast("Saved");
       }).catch(function(){
         showToast("Couldn't save — check your connection", true);
@@ -761,23 +885,21 @@
     var item = state.items.find(function(i){ return i.key === key; });
     var name = item && item.title ? item.title : "this piece";
     if(!window.confirm('Remove "'+name+'" from your work?')) return;
-    deleteItem(key).then(function(){
+    deleteWork(key).then(function(){
       state.items = state.items.filter(function(i){ return i.key !== key; });
       render();
       showToast("Removed");
-    }).catch(function(){
-      showToast("Couldn't remove — try again", true);
+    }).catch(function(err){
+      showToast("Couldn't remove: " + (err && err.message ? err.message : "try again"), true);
     });
   }
 
   function handleReset(){
     if(!window.confirm("Remove every uploaded piece from this gallery? This can't be undone.")) return;
-    listItemKeys().then(function(keys){
-      Promise.all(keys.map(function(k){ return deleteItem(k).catch(function(){}); })).then(function(){
-        state.items = [];
-        render();
-        showToast("Gallery reset");
-      });
+    Promise.all(state.items.map(function(i){ return deleteWork(i.key).catch(function(){}); })).then(function(){
+      state.items = [];
+      render();
+      showToast("Gallery reset");
     });
   }
 
@@ -904,13 +1026,13 @@
     els.submitBtn.disabled = true;
     setModalStatus("Saving…");
 
-    saveItem(key, record).then(function(){
+    saveWork(key, record).then(function(){
       state.items.push(Object.assign({ key: key }, record));
       closeModal();
       render();
       showToast("Added to index");
-    }).catch(function(){
-      setModalStatus("Couldn't save — the image may be too large, or storage is unavailable.", true);
+    }).catch(function(err){
+      setModalStatus("Couldn't save: " + (err && err.message ? err.message : "unknown error"), true);
     }).finally(function(){
       els.submitBtn.disabled = false;
     });
