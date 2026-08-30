@@ -242,6 +242,7 @@
     margin-bottom:16px;
   }
   .dropzone.drag{ border-color:var(--black); color:var(--black); }
+  .dropzone.uploading{ opacity:0.55; pointer-events:none; }
   .dropzone img{ max-width:100%; max-height:180px; display:block; margin:0 auto 10px; }
   .field{ margin-bottom:14px; }
   .field label{ display:block; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
@@ -370,6 +371,13 @@
   var ITEM_PREFIX = "item:";
   var MAX_DIM = 1600;
   var JPEG_QUALITY = 0.82;
+
+  // Cloudinary — your cloud name + an UNSIGNED upload preset (Console →
+  // Settings → Upload → Upload presets → set Signing Mode to "Unsigned").
+  // A signed preset, or a wrong name/preset, is the #1 cause of failed uploads.
+  var CLOUDINARY_CLOUD_NAME = "kpsnna5h";
+  var CLOUDINARY_UPLOAD_PRESET = "kaisal";
+  var CLOUDINARY_MAX_BYTES = 10 * 1024 * 1024; // 10MB — Cloudinary's default unsigned cap
 
   var state = { items: [], category: "ALL", indexOpen: false, pendingImage: null, setWidth: 0 };
 
@@ -821,33 +829,52 @@
       setModalStatus("Please choose an image file.", true);
       return;
     }
-    setModalStatus("Uploading to Cloudinary...");
+    if(file.size > CLOUDINARY_MAX_BYTES){
+      setModalStatus("That image is too large (max 10MB).", true);
+      return;
+    }
 
-var formData = new FormData();
-formData.append('file', file);
-// Replace with your actual Cloudinary upload preset
-formData.append('upload_preset', 'kaisal'); 
+    state.pendingImage = null;
+    els.submitBtn.disabled = true;
+    els.dropzone.classList.add("uploading");
+    els.dropzone.innerHTML = '<span>Uploading…</span>';
+    setModalStatus("Uploading to Cloudinary…");
 
-// Replace with your actual Cloudinary cloud name URL
-fetch('https://api.cloudinary.com/v1_1/kpsnna5h/image/upload', {
-    method: 'POST',
-    body: formData
-})
-.then(function(response) { return response.json(); })
-.then(function(data) {
-    var imageUrl = data.secure_url;
-    
-    // Save the permanent Cloudinary URL instead of the local Base64 string
-    state.pendingImage = imageUrl; 
-    
-    // Show the preview using the new Cloudinary URL
-    els.dropzone.innerHTML = '<img src="'+imageUrl+'" alt="Selected image preview">';
-    setModalStatus("");
-})
-.catch(function(error) {
-    setModalStatus("Upload failed. Check your Cloudinary settings.", true);
-    console.error(error);
-});
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+      method: 'POST',
+      body: formData
+    }).then(function(response){
+      return response.json().then(function(data){
+        // Cloudinary responds with an ordinary HTTP status (often 400/401) and
+        // a JSON error body when something's wrong — fetch() alone doesn't
+        // reject on that, so response.ok has to be checked explicitly or a
+        // bad preset/cloud name silently "succeeds" with no image.
+        if(!response.ok){
+          var msg = (data && data.error && data.error.message) || ("Upload failed (" + response.status + ")");
+          throw new Error(msg);
+        }
+        return data;
+      });
+    }).then(function(data){
+      if(!data.secure_url){
+        throw new Error("Cloudinary didn't return an image URL.");
+      }
+      state.pendingImage = data.secure_url;
+      els.dropzone.innerHTML = '<img src="'+data.secure_url+'" alt="Selected image preview">';
+      setModalStatus("");
+    }).catch(function(error){
+      els.dropzone.innerHTML = '<span id="dropzoneLabel">Click or drop an image</span>';
+      els.dropzoneLabel = q("dropzoneLabel");
+      setModalStatus("Upload failed: " + error.message, true);
+      console.error(error);
+    }).finally(function(){
+      els.dropzone.classList.remove("uploading");
+      els.submitBtn.disabled = false;
+    });
   }
 
   
