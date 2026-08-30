@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — Selected Work</title>
+<style>
+  :root{
+    --black:#0b0b0b;
+    --white:#ffffff;
+    --gray:#8f8f8f;
+    --gray-light:#bdbdbd;
+    --hairline:#e3e3e3;
+    --frame: 18px;
+    --header-h: 56px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  body{
+    margin:0;
+    padding: var(--frame);
+    background: var(--black);
+    font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: var(--black);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .page{
+    background: var(--white);
+    min-height: calc(100vh - (var(--frame) * 2));
+    position:relative;
+  }
+
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:inherit; cursor:pointer; }
+  input, select, textarea{ font-family:inherit; }
+
+  :focus-visible{ outline:2px solid var(--black); outline-offset:3px; }
+
+  .u-caps{ text-transform:uppercase; }
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; justify-content:space-between;
+    height: var(--header-h);
+    padding: 0 clamp(16px, 3vw, 40px);
+    background: rgba(255,255,255,0.92);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid var(--hairline);
+  }
+  .wordmark{
+    font-weight:700; font-size:11.5px; letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  nav.mainnav{ display:flex; gap: clamp(14px, 3vw, 30px); }
+  nav.mainnav a{
+    font-weight:700; font-size:11px; letter-spacing:0.08em;
+    text-transform:uppercase; padding:6px 0; position:relative;
+    color:var(--gray);
+    transition:color .15s ease;
+  }
+  nav.mainnav a:hover, nav.mainnav a.active{ color:var(--black); }
+  nav.mainnav a.active::after{
+    content:''; position:absolute; left:0; right:0; bottom:0px; height:2px; background:var(--black);
+  }
+  .navtoggle{
+    display:none; width:34px; height:34px; border:1px solid var(--black); background:none;
+    align-items:center; justify-content:center;
+  }
+  .navtoggle span, .navtoggle span::before, .navtoggle span::after{
+    display:block; width:16px; height:2px; background:var(--black); position:relative;
+  }
+  .navtoggle span::before, .navtoggle span::after{ content:''; position:absolute; left:0; }
+  .navtoggle span::before{ top:-5px; } .navtoggle span::after{ top:5px; }
+
+  @media (max-width: 640px){
+    nav.mainnav{
+      position:fixed; top:var(--header-h); left:var(--frame); right:var(--frame);
+      background:var(--white); border-bottom:1px solid var(--hairline);
+      flex-direction:column; gap:0; padding: 6px clamp(16px,3vw,40px) 14px;
+      transform:translateY(-8px); opacity:0; pointer-events:none; transition:.15s ease;
+    }
+    nav.mainnav.open{ transform:translateY(0); opacity:1; pointer-events:auto; }
+    nav.mainnav a{ padding:10px 0; border-bottom:1px solid var(--hairline); }
+    nav.mainnav a:last-child{ border-bottom:none; }
+    .navtoggle{ display:flex; }
+  }
+
+  /* ---------- Section shell ---------- */
+  section{ scroll-margin-top: calc(var(--header-h) + 12px); padding: 30px clamp(16px, 3vw, 40px); }
+  .section-top{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:16px; }
+  h1.section-title{
+    font-weight:700; font-size:11px; letter-spacing:0.14em; margin:0;
+    text-transform:uppercase;
+  }
+  .section-sub{ font-size:11px; color:var(--gray); max-width:44ch; margin-top:5px; line-height:1.5; }
+
+  /* ---------- Work controls ---------- */
+  .work-tools{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  select.filter{
+    appearance:none; -webkit-appearance:none;
+    border:1px solid var(--black); background:var(--white) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="%230b0b0b"/></svg>') no-repeat right 10px center;
+    padding:8px 28px 8px 11px; font-weight:700; font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase;
+  }
+  .btn{
+    border:1px solid var(--black); background:var(--black); color:var(--white);
+    font-weight:700; font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase;
+    padding:9px 15px; display:inline-flex; align-items:center; gap:8px;
+    transition:opacity .15s ease;
+  }
+  .btn:hover{ opacity:.8; }
+  .btn.ghost{ background:var(--white); color:var(--black); }
+
+  /* ---------- Index list ---------- */
+  .index-wrap{ border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin-bottom:34px; }
+  .index-toggle{
+    width:100%; text-align:left; background:none; border:none; padding:10px 0;
+    display:flex; align-items:center; gap:7px; font-weight:700; font-size:10px; letter-spacing:0.1em;
+    color:var(--gray);
+  }
+  .index-toggle .chev{ transition:transform .15s ease; font-size:8px; }
+  .index-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+  .index-list{ list-style:none; margin:0; padding:0 0 10px; display:none; }
+  .index-list.open{ display:block; }
+  .index-list li{ border-top:1px solid var(--hairline); }
+  .index-list li:first-child{ border-top:none; }
+  .index-row{
+    width:100%; text-align:left; background:none; border:none; padding:6px 2px;
+    display:grid; grid-template-columns: 48px 1fr auto; gap:10px; align-items:baseline;
+    font-weight:700; font-size:11px; letter-spacing:0.01em;
+  }
+  .index-row:hover .idx-title{ text-decoration:underline; }
+  .idx-num{ color:var(--gray-light); font-variant-numeric:tabular-nums; }
+  .idx-title{ text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .idx-cat{ color:var(--gray); font-size:10px; text-transform:uppercase; letter-spacing:0.05em; }
+
+  /* ---------- Filmstrip ---------- */
+  .filmstrip-wrap{ position:relative; }
+  .filmstrip{
+    display:flex; align-items:flex-start; gap:10px;
+    overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+    padding-bottom:2px; scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .filmstrip::-webkit-scrollbar{ display:none; }
+  .filmstrip .tile{ flex:0 0 auto; width:19vw; }
+  @media (max-width:1100px){ .filmstrip .tile{ width:30vw; } }
+  @media (max-width:680px){ .filmstrip .tile{ width:46vw; } }
+  @media (max-width:420px){ .filmstrip .tile{ width:78vw; } }
+  .filmstrip .empty-state{ flex:0 0 100%; }
+
+  .scroll-arrow{
+    position:absolute; top:0; bottom:14px; width:38px; z-index:5; border:none; cursor:pointer;
+    background:linear-gradient(to right, var(--white) 30%, rgba(255,255,255,0));
+    color:var(--black); font-size:22px; display:flex; align-items:center; justify-content:center;
+  }
+  .scroll-arrow.next{ right:0; background:linear-gradient(to left, var(--white) 30%, rgba(255,255,255,0)); }
+  .scroll-arrow.prev{ left:0; }
+  .scroll-arrow:hover{ color:var(--gray); }
+  @media (max-width:680px){ .scroll-arrow{ display:none; } }
+
+  .tile{ position:relative; }
+  .tile-img{
+    position:relative; width:100%; aspect-ratio:3/2; background:#f2f2f2; overflow:hidden;
+  }
+  .tile-img img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .tile.flash .tile-img{ box-shadow: 0 0 0 3px var(--black); }
+  .tile-del{
+    position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
+    background:rgba(255,255,255,0.92); border:1px solid var(--black); color:var(--black);
+    font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
+    opacity:0.55; transition:opacity .15s ease;
+  }
+  .tile-del:hover, .tile-del:focus-visible{ opacity:1; }
+  .tile-caption{ margin-top:6px; }
+  .tile-title{ font-weight:700; font-size:10.5px; letter-spacing:0.01em; text-transform:uppercase; }
+  .tile-cat{ font-weight:700; font-size:9.5px; color:var(--gray); text-transform:uppercase; margin-top:1px; }
+
+  .skeleton .tile-img{
+    background:linear-gradient(100deg,#f0f0f0 20%,#f7f7f7 40%,#f0f0f0 60%);
+    background-size:200% 100%; animation:shine 1.4s infinite;
+  }
+  @keyframes shine{ from{background-position:200% 0;} to{background-position:-200% 0;} }
+  .skel-line{ height:8px; background:#eee; margin-top:7px; width:70%; }
+  .skel-line.short{ width:40%; margin-top:5px; }
+
+  .empty-state{
+    border:1px dashed var(--gray-light); padding:54px 20px; text-align:center;
+  }
+  .empty-state p{ font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 16px; color:var(--gray); }
+
+  /* ---------- Info / contact ---------- */
+  .editable{
+    font-size:13px; line-height:1.65; max-width:58ch; min-height:1.4em;
+    border-left:2px solid transparent; padding-left:12px; margin-left:-14px;
+  }
+  .editable:hover, .editable:focus{ border-left-color:var(--hairline); }
+  .editable:focus{ outline:none; border-left-color:var(--black); }
+  .field-hint{ font-size:10px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.08em; margin-top:16px; }
+
+  footer.sitefoot{
+    border-top:1px solid var(--hairline); padding:22px clamp(16px,3vw,40px) 30px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    font-size:10.5px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.06em;
+  }
+  footer.sitefoot button{ background:none; border:none; color:var(--gray-light); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; padding:0; }
+  footer.sitefoot button:hover{ color:var(--black); text-decoration:underline; }
+
+  /* ---------- Floating add button ---------- */
+  .fab{
+    position:fixed; right:calc(var(--frame) + 22px); bottom:calc(var(--frame) + 22px); z-index:30;
+    width:52px; height:52px; border-radius:50%; background:var(--black); color:var(--white);
+    border:none; font-size:24px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  }
+  .fab:hover{ opacity:.85; }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(10,10,10,0.55); z-index:50;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal{
+    background:var(--white); width:100%; max-width:420px; max-height:90vh; overflow:auto;
+    padding:26px clamp(18px,4vw,30px) 28px; position:relative;
+  }
+  .modal-close{
+    position:absolute; top:14px; right:14px; background:none; border:none; font-size:20px; width:30px; height:30px;
+  }
+  .modal h2{ font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 18px; }
+  .dropzone{
+    border:1.5px dashed var(--gray-light); padding:20px; text-align:center; cursor:pointer;
+    font-weight:700; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--gray);
+    margin-bottom:16px;
+  }
+  .dropzone.drag{ border-color:var(--black); color:var(--black); }
+  .dropzone img{ max-width:100%; max-height:180px; display:block; margin:0 auto 10px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
+  .field input{ width:100%; border:none; border-bottom:1px solid var(--hairline); padding:8px 2px; font-size:14px; }
+  .field input:focus{ border-bottom-color:var(--black); outline:none; }
+  .modal-actions{ display:flex; gap:10px; margin-top:20px; }
+  .modal-actions .btn{ flex:1; justify-content:center; }
+  .modal-status{ font-size:11.5px; margin-top:12px; min-height:1.4em; }
+  .modal-status.err{ color:#b3261e; }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:calc(var(--frame) + 20px); transform:translate(-50%, 10px);
+    background:var(--black); color:var(--white); font-size:12px; font-weight:700; letter-spacing:0.03em;
+    padding:11px 18px; z-index:60; opacity:0; pointer-events:none; transition:.2s ease;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+  .visually-hidden{ position:absolute; width:1px;height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="topbar">
+    <a class="wordmark" href="#top">Portfolio</a>
+    <nav class="mainnav" id="mainnav">
+      <a href="#work">Work</a>
+      <a href="#info">Info</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="navtoggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mainnav">
+      <span></span>
+    </button>
+  </header>
+
+  <main id="top">
+    <section id="work">
+      <div class="section-top">
+        <div>
+          <h1 class="section-title">Selected Work</h1>
+          <p class="section-sub">An ongoing archive of projects. Scroll or drag through the strip below — it loops.</p>
+        </div>
+        <div class="work-tools">
+          <select class="filter u-caps" id="categoryFilter" aria-label="Filter by category">
+            <option value="ALL">All work</option>
+          </select>
+          <button class="btn" id="addWorkBtn" type="button">+ Add work</button>
+        </div>
+      </div>
+
+      <div class="index-wrap">
+        <button class="index-toggle u-caps" id="indexToggle" aria-expanded="false" aria-controls="indexList">
+          <span class="chev">▾</span> <span id="indexToggleLabel">Show index</span>
+        </button>
+        <ul class="index-list" id="indexList"></ul>
+      </div>
+
+      <div class="filmstrip-wrap">
+        <button class="scroll-arrow prev" id="scrollPrev" type="button" aria-label="Scroll left">‹</button>
+        <div class="filmstrip" id="grid" tabindex="0" role="region" aria-label="Work — scroll, drag, or use arrow keys to browse" aria-live="polite"></div>
+        <button class="scroll-arrow next" id="scrollNext" type="button" aria-label="Scroll right">›</button>
+      </div>
+    </section>
+
+    <section id="info">
+      <h1 class="section-title">Info</h1>
+      <div class="editable" id="bioText" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Bio"></div>
+      <p class="field-hint">Click the text above to edit your bio. It saves automatically.</p>
+    </section>
+
+    <section id="contact">
+      <h1 class="section-title">Contact</h1>
+      <div class="editable" id="contactText" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Contact details"></div>
+      <p class="field-hint">Click the text above to edit. It saves automatically.</p>
+    </section>
+  </main>
+
+  <footer class="sitefoot">
+    <span>© <span id="year"></span> Portfolio</span>
+    <button id="resetBtn" type="button">Reset gallery</button>
+  </footer>
+
+  <button class="fab" id="fabAdd" type="button" aria-label="Add work">+</button>
+
+</div>
+
+<!-- Upload modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    <h2 id="modalTitle">Add work</h2>
+    <form id="uploadForm">
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <span id="dropzoneLabel">Click or drop an image</span>
+      </label>
+      <input type="file" id="fileInput" accept="image/*" class="visually-hidden">
+      <div class="field">
+        <label for="titleInput">Title</label>
+        <input type="text" id="titleInput" required maxlength="80" placeholder="Project title">
+      </div>
+      <div class="field">
+        <label for="categoryInput">Category</label>
+        <input type="text" id="categoryInput" list="categoryList" maxlength="40" placeholder="e.g. Photography">
+        <datalist id="categoryList"></datalist>
+      </div>
+      <div class="field">
+        <label for="detailInput">Detail (optional)</label>
+        <input type="text" id="detailInput" maxlength="80" placeholder="e.g. Direct to client">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn" id="submitBtn">Add to index</button>
+      </div>
+      <p class="modal-status" id="modalStatus"></p>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ITEM_PREFIX = "item:";
+  var MAX_DIM = 1600;
+  var JPEG_QUALITY = 0.82;
+
+  var state = { items: [], category: "ALL", indexOpen: false, pendingImage: null, setWidth: 0 };
+
+  var els = {};
+  function q(id){ return document.getElementById(id); }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    els.grid = q("grid");
+    els.indexList = q("indexList");
+    els.indexToggle = q("indexToggle");
+    els.indexToggleLabel = q("indexToggleLabel");
+    els.scrollPrev = q("scrollPrev");
+    els.scrollNext = q("scrollNext");
+    els.categoryFilter = q("categoryFilter");
+    els.categoryList = q("categoryList");
+    els.bioText = q("bioText");
+    els.contactText = q("contactText");
+    els.toast = q("toast");
+    els.modalBackdrop = q("modalBackdrop");
+    els.dropzone = q("dropzone");
+    els.dropzoneLabel = q("dropzoneLabel");
+    els.fileInput = q("fileInput");
+    els.titleInput = q("titleInput");
+    els.categoryInput = q("categoryInput");
+    els.detailInput = q("detailInput");
+    els.uploadForm = q("uploadForm");
+    els.modalStatus = q("modalStatus");
+    els.submitBtn = q("submitBtn");
+
+    q("year").textContent = new Date().getFullYear();
+    wireNav();
+    wireWorkControls();
+    wireFilmstrip();
+    wireModal();
+    wireEditableFields();
+    q("resetBtn").addEventListener("click", handleReset);
+
+    init();
+  });
+
+  function storageAvailable(){
+    return typeof window.storage !== "undefined" && window.storage;
+  }
+
+  function showToast(msg, isError){
+    if(!els.toast) return;
+    els.toast.textContent = msg;
+    els.toast.style.background = isError ? "#b3261e" : "";
+    els.toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ els.toast.classList.remove("show"); }, 2600);
+  }
+
+  /* ---------------- Storage helpers ---------------- */
+  function listItemKeys(){
+    if(!storageAvailable()) return Promise.resolve([]);
+    return window.storage.list(ITEM_PREFIX, true)
+      .then(function(res){ return (res && res.keys) ? res.keys : []; })
+      .catch(function(){ return []; });
+  }
+  function getItem(key){
+    if(!storageAvailable()) return Promise.resolve(null);
+    return window.storage.get(key, true)
+      .then(function(res){
+        if(!res || !res.value) return null;
+        try { return JSON.parse(res.value); } catch(e){ return null; }
+      })
+      .catch(function(){ return null; });
+  }
+  function saveItem(key, obj){
+    if(!storageAvailable()) return Promise.reject(new Error("Storage unavailable"));
+    return window.storage.set(key, JSON.stringify(obj), true);
+  }
+  function deleteItem(key){
+    if(!storageAvailable()) return Promise.reject(new Error("Storage unavailable"));
+    return window.storage.delete(key, true);
+  }
+  function getText(key, shared){
+    if(!storageAvailable()) return Promise.resolve(null);
+    return window.storage.get(key, !!shared)
+      .then(function(res){ return (res && typeof res.value === "string") ? res.value : null; })
+      .catch(function(){ return null; });
+  }
+  function setText(key, value, shared){
+    if(!storageAvailable()) return Promise.reject(new Error("Storage unavailable"));
+    return window.storage.set(key, value, !!shared);
+  }
+
+  /* ---------------- Init / load ---------------- */
+  function init(){
+    if(!storageAvailable()){
+      showToast("Storage isn't available in this preview — uploads won't be saved.", true);
+    }
+    loadGallery();
+    loadInfoAndContact();
+  }
+
+  function loadGallery(){
+    listItemKeys().then(function(keys){
+      if(!keys.length){
+        state.items = [];
+        render();
+        return;
+      }
+      state.items = keys.map(function(k){ return { key:k, loading:true }; });
+      render();
+      keys.forEach(function(key){
+        getItem(key).then(function(data){
+          var idx = state.items.findIndex(function(i){ return i.key === key; });
+          if(idx === -1) return;
+          state.items[idx] = data ? Object.assign({ key:key }, data) : { key:key, error:true };
+          render();
+        });
+      });
+    });
+  }
+
+  function loadInfoAndContact(){
+    getText("info-bio", true).then(function(val){
+      els.bioText.textContent = val || "Write a short bio here — your background, focus, and the kind of work you take on. Click to edit.";
+    });
+    getText("contact-info", true).then(function(val){
+      els.contactText.textContent = val || "Add how people can reach you — email, phone, or social links. Click to edit.";
+    });
+  }
+
+  /* ---------------- Rendering ---------------- */
+  function loadedItems(){
+    return state.items.filter(function(i){ return !i.loading && !i.error; });
+  }
+
+  function filteredItems(){
+    var items = loadedItems();
+    if(state.category === "ALL") return items;
+    return items.filter(function(i){ return (i.category || "").toUpperCase() === state.category; });
+  }
+
+  function render(){
+    renderCategoryOptions();
+    renderIndex();
+    renderGrid();
+  }
+
+  function renderCategoryOptions(){
+    var cats = {};
+    loadedItems().forEach(function(i){
+      if(i.category) cats[i.category.trim().toUpperCase()] = true;
+    });
+    var list = Object.keys(cats).sort();
+    var current = els.categoryFilter.value || "ALL";
+    els.categoryFilter.innerHTML = '<option value="ALL">All work</option>' +
+      list.map(function(c){ return '<option value="'+escapeAttr(c)+'">'+escapeHtml(c)+'</option>'; }).join("");
+    if(list.indexOf(current) > -1 || current === "ALL"){ els.categoryFilter.value = current; }
+    else { state.category = "ALL"; els.categoryFilter.value = "ALL"; }
+    els.categoryList.innerHTML = list.map(function(c){ return '<option value="'+escapeAttr(c)+'">'; }).join("");
+  }
+
+  function renderIndex(){
+    var items = loadedItems();
+    els.indexToggleLabel.textContent = (state.indexOpen ? "Hide index" : "Show index") + " (" + items.length + ")";
+    els.indexList.classList.toggle("open", state.indexOpen);
+    els.indexToggle.setAttribute("aria-expanded", String(state.indexOpen));
+
+    els.indexList.innerHTML = items.map(function(item, i){
+      var num = "P" + String(i+1).padStart(3, "0");
+      return '<li><button type="button" class="index-row" data-key="'+escapeAttr(item.key)+'">' +
+        '<span class="idx-num">'+num+'</span>' +
+        '<span class="idx-title">'+escapeHtml(item.title || "Untitled")+'</span>' +
+        '<span class="idx-cat">'+escapeHtml(item.category || "")+'</span>' +
+        '</button></li>';
+    }).join("");
+
+    Array.prototype.forEach.call(els.indexList.querySelectorAll(".index-row"), function(btn){
+      btn.addEventListener("click", function(){ jumpToItem(btn.getAttribute("data-key")); });
+    });
+  }
+
+  function renderGrid(){
+    var loading = state.items.some(function(i){ return i.loading; });
+    var filtered = filteredItems();
+    els.grid.classList.remove("looping");
+
+    if(!loading && filtered.length === 0 && state.items.length === 0){
+      els.grid.innerHTML = '<div class="empty-state"><p>No work yet</p>' +
+        '<button class="btn" type="button" id="emptyAddBtn">+ Add your first piece</button></div>';
+      var eb = q("emptyAddBtn");
+      if(eb) eb.addEventListener("click", openModal);
+      toggleScrollArrows(false);
+      return;
+    }
+
+    if(!loading && filtered.length === 0){
+      els.grid.innerHTML = '<div class="empty-state"><p>No work in this category</p></div>';
+      toggleScrollArrows(false);
+      return;
+    }
+
+    var itemsHtml = filtered.map(tileHtml).join("");
+
+    if(loading){
+      var skeletonCount = state.items.filter(function(i){ return i.loading; }).length;
+      var skeletons = "";
+      for(var s=0; s<skeletonCount; s++){ skeletons += skeletonHtml(); }
+      els.grid.innerHTML = itemsHtml + skeletons;
+      toggleScrollArrows(false);
+    } else {
+      // Three back-to-back copies let the strip wrap around seamlessly as it scrolls.
+      els.grid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
+      els.grid.classList.add("looping");
+      requestAnimationFrame(function(){
+        var setWidth = els.grid.scrollWidth / 3;
+        state.setWidth = setWidth;
+        var overflowing = setWidth > els.grid.clientWidth + 4;
+        els.grid.scrollLeft = overflowing ? setWidth : 0;
+        toggleScrollArrows(overflowing);
+      });
+    }
+
+    bindTileDeleteButtons();
+  }
+
+  function bindTileDeleteButtons(){
+    Array.prototype.forEach.call(els.grid.querySelectorAll(".tile-del"), function(btn){
+      btn.addEventListener("click", function(e){
+        e.stopPropagation();
+        handleDelete(btn.getAttribute("data-key"));
+      });
+    });
+  }
+
+  function toggleScrollArrows(show){
+    var display = show ? "" : "none";
+    if(els.scrollPrev) els.scrollPrev.style.display = display;
+    if(els.scrollNext) els.scrollNext.style.display = display;
+  }
+
+  function tileHtml(item){
+    return '<div class="tile" data-key="'+escapeAttr(item.key)+'">' +
+      '<div class="tile-img"><img src="'+item.image+'" alt="'+escapeAttr(item.title || "")+'" loading="lazy"></div>' +
+      '<button class="tile-del" type="button" data-key="'+escapeAttr(item.key)+'" aria-label="Delete this piece">×</button>' +
+      '<div class="tile-caption">' +
+        '<div class="tile-title">'+escapeHtml(item.title || "Untitled")+'</div>' +
+        '<div class="tile-cat">'+escapeHtml([item.category, item.subtitle].filter(Boolean).join(" · "))+'</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function skeletonHtml(){
+    return '<div class="tile skeleton"><div class="tile-img"></div><div class="skel-line"></div><div class="skel-line short"></div></div>';
+  }
+
+  function jumpToItem(key){
+    var matches = els.grid.querySelectorAll('.tile[data-key="'+cssEscape(key)+'"]');
+    if(!matches.length) return;
+    // With the strip tripled for looping, the middle copy keeps the jump centered either direction.
+    var target = matches.length >= 2 ? matches[1] : matches[0];
+    target.scrollIntoView({ behavior:"smooth", inline:"center", block:"nearest" });
+    target.classList.add("flash");
+    setTimeout(function(){ target.classList.remove("flash"); }, 900);
+  }
+
+  function debounce(fn, wait){
+    var t;
+    return function(){
+      var args = arguments, ctx = this;
+      clearTimeout(t);
+      t = setTimeout(function(){ fn.apply(ctx, args); }, wait);
+    };
+  }
+
+  function scrollByTiles(direction){
+    var tile = els.grid.querySelector(".tile");
+    var step = tile ? (tile.getBoundingClientRect().width + 10) * 2 : 320;
+    els.grid.scrollBy({ left: direction * step, behavior: "smooth" });
+  }
+
+  function wireFilmstrip(){
+    // A vertical wheel gesture over the strip rotates it horizontally; native
+    // horizontal trackpad/touch scrolling passes through untouched.
+    els.grid.addEventListener("wheel", function(e){
+      if(els.grid.scrollWidth <= els.grid.clientWidth) return;
+      if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+        e.preventDefault();
+        els.grid.scrollLeft += e.deltaY;
+      }
+    }, { passive:false });
+
+    // Seamlessly rewrap once the scroll position drifts near either end of
+    // the tripled content, so the strip appears to loop forever.
+    els.grid.addEventListener("scroll", function(){
+      if(!els.grid.classList.contains("looping")) return;
+      var setWidth = state.setWidth;
+      if(!setWidth) return;
+      if(els.grid.scrollLeft < setWidth * 0.15){
+        els.grid.scrollLeft += setWidth;
+      } else if(els.grid.scrollLeft > setWidth * 1.85){
+        els.grid.scrollLeft -= setWidth;
+      }
+    });
+
+    els.grid.addEventListener("keydown", function(e){
+      if(e.key === "ArrowRight"){ e.preventDefault(); scrollByTiles(1); }
+      else if(e.key === "ArrowLeft"){ e.preventDefault(); scrollByTiles(-1); }
+    });
+
+    if(els.scrollPrev) els.scrollPrev.addEventListener("click", function(){ scrollByTiles(-1); });
+    if(els.scrollNext) els.scrollNext.addEventListener("click", function(){ scrollByTiles(1); });
+
+    window.addEventListener("resize", debounce(function(){
+      if(els.grid.classList.contains("looping")){
+        state.setWidth = els.grid.scrollWidth / 3;
+      }
+    }, 200));
+  }
+
+  /* ---------------- Controls wiring ---------------- */
+  function wireNav(){
+    var toggle = q("navToggle");
+    var nav = q("mainnav");
+    toggle.addEventListener("click", function(){
+      var open = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(open));
+    });
+    Array.prototype.forEach.call(nav.querySelectorAll("a"), function(a){
+      a.addEventListener("click", function(){
+        nav.classList.remove("open");
+        toggle.setAttribute("aria-expanded", "false");
+      });
+    });
+
+    var sections = ["work","info","contact"].map(function(id){ return document.getElementById(id); });
+    var links = Array.prototype.slice.call(nav.querySelectorAll("a"));
+    if("IntersectionObserver" in window){
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            links.forEach(function(l){ l.classList.toggle("active", l.getAttribute("href") === "#"+entry.target.id); });
+          }
+        });
+      }, { rootMargin: "-40% 0px -55% 0px" });
+      sections.forEach(function(s){ if(s) obs.observe(s); });
+    }
+  }
+
+  function wireWorkControls(){
+    q("addWorkBtn").addEventListener("click", openModal);
+    q("fabAdd").addEventListener("click", openModal);
+    els.categoryFilter.addEventListener("change", function(){
+      state.category = els.categoryFilter.value;
+      renderGrid();
+    });
+    els.indexToggle.addEventListener("click", function(){
+      state.indexOpen = !state.indexOpen;
+      renderIndex();
+    });
+  }
+
+  function wireEditableFields(){
+    bindEditable(els.bioText, "info-bio");
+    bindEditable(els.contactText, "contact-info");
+  }
+
+  function bindEditable(el, key){
+    el.addEventListener("paste", function(e){
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData("text/plain");
+      document.execCommand("insertText", false, text);
+    });
+    el.addEventListener("blur", function(){
+      var text = el.textContent.trim();
+      setText(key, text, true).then(function(){
+        showToast("Saved");
+      }).catch(function(){
+        showToast("Couldn't save — check your connection", true);
+      });
+    });
+  }
+
+  /* ---------------- Delete / reset ---------------- */
+  function handleDelete(key){
+    var item = state.items.find(function(i){ return i.key === key; });
+    var name = item && item.title ? item.title : "this piece";
+    if(!window.confirm('Remove "'+name+'" from your work?')) return;
+    deleteItem(key).then(function(){
+      state.items = state.items.filter(function(i){ return i.key !== key; });
+      render();
+      showToast("Removed");
+    }).catch(function(){
+      showToast("Couldn't remove — try again", true);
+    });
+  }
+
+  function handleReset(){
+    if(!window.confirm("Remove every uploaded piece from this gallery? This can't be undone.")) return;
+    listItemKeys().then(function(keys){
+      Promise.all(keys.map(function(k){ return deleteItem(k).catch(function(){}); })).then(function(){
+        state.items = [];
+        render();
+        showToast("Gallery reset");
+      });
+    });
+  }
+
+  /* ---------------- Modal / upload ---------------- */
+  function openModal(){
+    state.pendingImage = null;
+    els.uploadForm.reset();
+    els.dropzoneLabel.textContent = "Click or drop an image";
+    els.dropzone.innerHTML = '<span id="dropzoneLabel">Click or drop an image</span>';
+    els.dropzoneLabel = q("dropzoneLabel");
+    setModalStatus("");
+    els.modalBackdrop.classList.add("open");
+    setTimeout(function(){ els.titleInput.focus(); }, 30);
+  }
+  function closeModal(){
+    els.modalBackdrop.classList.remove("open");
+  }
+
+  function wireModal(){
+    q("modalClose").addEventListener("click", closeModal);
+    q("cancelBtn").addEventListener("click", closeModal);
+    els.modalBackdrop.addEventListener("click", function(e){
+      if(e.target === els.modalBackdrop) closeModal();
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && els.modalBackdrop.classList.contains("open")) closeModal();
+    });
+
+    els.dropzone.addEventListener("click", function(){ els.fileInput.click(); });
+    els.dropzone.addEventListener("dragover", function(e){ e.preventDefault(); els.dropzone.classList.add("drag"); });
+    els.dropzone.addEventListener("dragleave", function(){ els.dropzone.classList.remove("drag"); });
+    els.dropzone.addEventListener("drop", function(e){
+      e.preventDefault();
+      els.dropzone.classList.remove("drag");
+      if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    els.fileInput.addEventListener("change", function(){
+      if(els.fileInput.files && els.fileInput.files[0]) handleFile(els.fileInput.files[0]);
+    });
+
+    els.uploadForm.addEventListener("submit", function(e){
+      e.preventDefault();
+      submitUpload();
+    });
+  }
+
+  function handleFile(file){
+    if(!file.type || file.type.indexOf("image/") !== 0){
+      setModalStatus("Please choose an image file.", true);
+      return;
+    }
+    setModalStatus("Preparing image…");
+    compressImage(file).then(function(dataUrl){
+      state.pendingImage = dataUrl;
+      els.dropzone.innerHTML = '<img src="'+dataUrl+'" alt="Selected image preview"><span>'+escapeHtml(file.name)+' — click to change</span>';
+      setModalStatus("");
+    }).catch(function(){
+      setModalStatus("Couldn't read that image — try a different file.", true);
+    });
+  }
+
+  function compressImage(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var w = img.width, h = img.height;
+          if(w > h && w > MAX_DIM){ h = Math.round(h * (MAX_DIM / w)); w = MAX_DIM; }
+          else if(h >= w && h > MAX_DIM){ w = Math.round(w * (MAX_DIM / h)); h = MAX_DIM; }
+          var canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          try{
+            resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
+          } catch(err){ reject(err); }
+        };
+        img.onerror = function(){ reject(new Error("Bad image")); };
+        img.src = e.target.result;
+      };
+      reader.onerror = function(){ reject(new Error("Read failed")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setModalStatus(msg, isError){
+    els.modalStatus.textContent = msg || "";
+    els.modalStatus.classList.toggle("err", !!isError);
+  }
+
+  function submitUpload(){
+    var title = els.titleInput.value.trim();
+    var category = els.categoryInput.value.trim();
+    var detail = els.detailInput.value.trim();
+
+    if(!title){ setModalStatus("Give the piece a title.", true); els.titleInput.focus(); return; }
+    if(!state.pendingImage){ setModalStatus("Choose an image first.", true); return; }
+
+    var key = ITEM_PREFIX + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    var record = {
+      title: title,
+      category: category,
+      subtitle: detail,
+      image: state.pendingImage,
+      createdAt: Date.now()
+    };
+
+    els.submitBtn.disabled = true;
+    setModalStatus("Saving…");
+
+    saveItem(key, record).then(function(){
+      state.items.push(Object.assign({ key: key }, record));
+      closeModal();
+      render();
+      showToast("Added to index");
+    }).catch(function(){
+      setModalStatus("Couldn't save — the image may be too large, or storage is unavailable.", true);
+    }).finally(function(){
+      els.submitBtn.disabled = false;
+    });
+  }
+
+  /* ---------------- Utils ---------------- */
+  function escapeHtml(str){
+    return String(str || "").replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+  function escapeAttr(str){ return escapeHtml(str); }
+  function cssEscape(str){
+    if(window.CSS && window.CSS.escape) return window.CSS.escape(str);
+    return String(str).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+  }
+})();
+</script>
+</body>
+</html>
