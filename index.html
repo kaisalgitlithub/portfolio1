@@ -821,40 +821,36 @@
       setModalStatus("Please choose an image file.", true);
       return;
     }
-    setModalStatus("Preparing image…");
-    compressImage(file).then(function(dataUrl){
-      state.pendingImage = dataUrl;
-      els.dropzone.innerHTML = '<img src="'+dataUrl+'" alt="Selected image preview"><span>'+escapeHtml(file.name)+' — click to change</span>';
-      setModalStatus("");
-    }).catch(function(){
-      setModalStatus("Couldn't read that image — try a different file.", true);
-    });
+    setModalStatus("Uploading to Cloudinary...");
+
+var formData = new FormData();
+formData.append('file', file);
+// Replace with your actual Cloudinary upload preset
+formData.append('upload_preset', 'YOUR_UNSIGNED_PRESET_NAME'); 
+
+// Replace with your actual Cloudinary cloud name URL
+fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
+    method: 'POST',
+    body: formData
+})
+.then(function(response) { return response.json(); })
+.then(function(data) {
+    var imageUrl = data.secure_url;
+    
+    // Save the permanent Cloudinary URL instead of the local Base64 string
+    state.pendingImage = imageUrl; 
+    
+    // Show the preview using the new Cloudinary URL
+    els.dropzone.innerHTML = '<img src="'+imageUrl+'" alt="Selected image preview">';
+    setModalStatus("");
+})
+.catch(function(error) {
+    setModalStatus("Upload failed. Check your Cloudinary settings.", true);
+    console.error(error);
+});
   }
 
-  function compressImage(file){
-    return new Promise(function(resolve, reject){
-      var reader = new FileReader();
-      reader.onload = function(e){
-        var img = new Image();
-        img.onload = function(){
-          var w = img.width, h = img.height;
-          if(w > h && w > MAX_DIM){ h = Math.round(h * (MAX_DIM / w)); w = MAX_DIM; }
-          else if(h >= w && h > MAX_DIM){ w = Math.round(w * (MAX_DIM / h)); h = MAX_DIM; }
-          var canvas = document.createElement("canvas");
-          canvas.width = w; canvas.height = h;
-          var ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          try{
-            resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
-          } catch(err){ reject(err); }
-        };
-        img.onerror = function(){ reject(new Error("Bad image")); };
-        img.src = e.target.result;
-      };
-      reader.onerror = function(){ reject(new Error("Read failed")); };
-      reader.readAsDataURL(file);
-    });
-  }
+  
 
   function setModalStatus(msg, isError){
     els.modalStatus.textContent = msg || "";
