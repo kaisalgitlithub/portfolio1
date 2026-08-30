@@ -826,10 +826,10 @@
 var formData = new FormData();
 formData.append('file', file);
 // Replace with your actual Cloudinary upload preset
-formData.append('upload_preset', 'YOUR_UNSIGNED_PRESET_NAME'); 
+formData.append('upload_preset', 'kaisal'); 
 
 // Replace with your actual Cloudinary cloud name URL
-fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
+fetch('https://api.cloudinary.com/v1_1/kaisalgitlithub/image/upload', {
     method: 'POST',
     body: formData
 })
