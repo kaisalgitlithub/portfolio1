@@ -148,6 +148,7 @@
     display:flex; align-items:flex-start; gap:10px;
     overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
     padding-bottom:2px; scrollbar-width:none; -ms-overflow-style:none;
+    transition:padding .35s ease;
   }
   .filmstrip::-webkit-scrollbar{ display:none; }
   .filmstrip .tile{ flex:0 0 auto; width:23vw; }
@@ -168,14 +169,13 @@
 
   .tile{ position:relative; }
   .tile-img{
-    position:relative; width:100%; aspect-ratio:3/2; background:#f2f2f2; overflow:hidden;
-    transition:box-shadow .25s ease;
+    position:relative; width:100%; aspect-ratio:3/4; background:#f2f2f2; overflow:hidden;
+    transition:transform .35s ease, box-shadow .35s ease;
   }
-  .tile-img img{ width:100%; height:100%; object-fit:contain; display:block; transition:transform .35s ease; }
+  .tile-img img{ width:100%; height:100%; object-fit:contain; display:block; }
   .tile.flash .tile-img{ box-shadow: 0 0 0 3px var(--black); }
-  .tile:hover{ z-index:5; }
-  .tile:hover .tile-img{ box-shadow:0 10px 26px rgba(0,0,0,0.22); }
-  .tile:hover .tile-img img{ transform:scale(1.12); }
+  .tile.hover-active{ z-index:5; }
+  .tile.hover-active .tile-img{ transform:scale(1.5); box-shadow:0 16px 34px rgba(0,0,0,0.25); }
   .tile-del{
     position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
     background:rgba(255,255,255,0.92); border:1px solid var(--black); color:var(--black);
@@ -183,7 +183,8 @@
     opacity:0.55; transition:opacity .15s ease;
   }
   .tile-del:hover, .tile-del:focus-visible{ opacity:1; }
-  .tile-caption{ margin-top:6px; }
+  .tile-caption{ margin-top:6px; transition:opacity .2s ease; }
+  .tile.hover-active .tile-caption{ opacity:0; }
   .tile-title{ font-weight:700; font-size:10.5px; letter-spacing:0.01em; text-transform:uppercase; }
   .tile-cat{ font-weight:700; font-size:9.5px; color:var(--gray); text-transform:uppercase; margin-top:1px; }
 
@@ -833,6 +834,7 @@
     }
 
     bindTileDeleteButtons();
+    bindTileHoverEffects();
   }
 
   function bindTileDeleteButtons(){
@@ -840,6 +842,32 @@
       btn.addEventListener("click", function(e){
         e.stopPropagation();
         handleDelete(btn.getAttribute("data-key"));
+      });
+    });
+  }
+
+  function bindTileHoverEffects(){
+    // Expanding a tile from 3:4 to 4.5:6 (the same ratio, 1.5x bigger) means
+    // it needs 1/4 of its resting height as extra room above AND below, or
+    // the filmstrip's own clipping would cut it off — so we grow the strip's
+    // padding to fit before the scale kicks in, measuring the resting size
+    // first since a transformed element's rect would already reflect the
+    // larger, scaled-up size.
+    Array.prototype.forEach.call(els.grid.querySelectorAll(".tile"), function(tile){
+      var imgBox = tile.querySelector(".tile-img");
+      tile.addEventListener("mouseenter", function(){
+        if(imgBox){
+          var extra = imgBox.getBoundingClientRect().height * 0.25;
+          els.grid.style.paddingTop = extra + "px";
+          els.grid.style.paddingBottom = extra + "px";
+        }
+        tile.classList.add("hover-active");
+        tile.scrollIntoView({ behavior:"smooth", inline:"center", block:"nearest" });
+      });
+      tile.addEventListener("mouseleave", function(){
+        tile.classList.remove("hover-active");
+        els.grid.style.paddingTop = "";
+        els.grid.style.paddingBottom = "";
       });
     });
   }
