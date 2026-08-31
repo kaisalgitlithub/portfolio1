@@ -168,10 +168,14 @@
 
   .tile{ position:relative; }
   .tile-img{
-    position:relative; width:100%; background:#f2f2f2; overflow:hidden;
+    position:relative; width:100%; aspect-ratio:3/2; background:#f2f2f2; overflow:hidden;
+    transition:box-shadow .25s ease;
   }
-  .tile-img img{ width:100%; height:auto; display:block; }
+  .tile-img img{ width:100%; height:100%; object-fit:contain; display:block; transition:transform .35s ease; }
   .tile.flash .tile-img{ box-shadow: 0 0 0 3px var(--black); }
+  .tile:hover{ z-index:5; }
+  .tile:hover .tile-img{ box-shadow:0 10px 26px rgba(0,0,0,0.22); }
+  .tile:hover .tile-img img{ transform:scale(1.12); }
   .tile-del{
     position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
     background:rgba(255,255,255,0.92); border:1px solid var(--black); color:var(--black);
@@ -184,7 +188,6 @@
   .tile-cat{ font-weight:700; font-size:9.5px; color:var(--gray); text-transform:uppercase; margin-top:1px; }
 
   .skeleton .tile-img{
-    aspect-ratio:3/2;
     background:linear-gradient(100deg,#f0f0f0 20%,#f7f7f7 40%,#f0f0f0 60%);
     background-size:200% 100%; animation:shine 1.4s infinite;
   }
