@@ -135,8 +135,14 @@
   }
   .index-toggle .chev{ transition:transform .15s ease; font-size:8px; }
   .index-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
-  .index-list{ list-style:none; margin:0; padding:0 0 8px; display:none; }
+  .index-list{
+    list-style:none; margin:0; padding:0 0 8px; display:none;
+    overflow-y:auto; scrollbar-width:thin; scrollbar-color: var(--gray-light) transparent;
+  }
   .index-list.open{ display:block; }
+  .index-list::-webkit-scrollbar{ width:4px; }
+  .index-list::-webkit-scrollbar-thumb{ background:var(--gray-light); }
+  .index-list::-webkit-scrollbar-track{ background:transparent; }
   .index-list li{ border-top:1px solid var(--hairline); width:fit-content; }
   .index-list li:first-child{ border-top:none; }
   .index-row{
@@ -162,7 +168,6 @@
   }
   .filmstrip::-webkit-scrollbar{ display:none; }
   .filmstrip .tile{ flex:0 0 auto; width:26vw; }
-  .tile.hover-active{ width:31vw; }
   @media (max-width:1100px){ .filmstrip .tile{ width:35vw; } }
   @media (max-width:680px){ .filmstrip .tile{ width:52vw; } }
   @media (max-width:420px){ .filmstrip .tile{ width:84vw; } }
@@ -178,12 +183,12 @@
   .scroll-arrow:hover{ color:var(--gray); }
   @media (max-width:680px){ .scroll-arrow{ display:none; } }
 
-  .tile{ position:relative; transition:width .35s ease; }
-  .tile-img{ position:relative; transition:box-shadow .35s ease; }
+  .tile{ position:relative; }
+  .tile-img{ position:relative; cursor:pointer; transition:transform .35s ease, box-shadow .35s ease; }
   .tile-img img{ width:100%; height:auto; display:block; }
   .tile.flash .tile-img{ box-shadow: 0 0 0 3px var(--black); }
-  .tile.hover-active{ z-index:5; }
-  .tile.hover-active .tile-img{ box-shadow:0 16px 34px rgba(0,0,0,0.25); }
+  .tile.expanded{ z-index:5; }
+  .tile.expanded .tile-img{ transform:scale(1.35); box-shadow:0 16px 34px rgba(0,0,0,0.25); }
   .tile-del{
     position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
     background:rgba(255,255,255,0.92); border:1px solid var(--black); color:var(--black);
@@ -454,10 +459,7 @@
   }
 
   var state = { items: [], category: "ALL", indexOpen: true, pendingImage: null, setWidth: 0, loadingGallery: true, isOwner: false, ownerEmail: "" };
-  var hoverSwitchTimer = null;
-  var hoverLeaveTimer = null;
-  var HOVER_DWELL_MS = 420; // how long a new image must be hovered before it takes over
-  var HOVER_LEAVE_MS = 220; // grace period before the active image releases
+  var EXPAND_SCALE = 1.35; // must match the transform:scale() value in .tile.expanded .tile-img
 
   var els = {};
   function q(id){ return document.getElementById(id); }
@@ -655,6 +657,19 @@
     });
 
     if(canDrag) bindIndexDragReorder();
+    applyIndexScrollCap();
+  }
+
+  function applyIndexScrollCap(){
+    var rows = els.indexList.querySelectorAll("li");
+    if(rows.length <= 5){
+      els.indexList.style.maxHeight = "";
+      return;
+    }
+    // The 6th row's distance from the top of the list is exactly the height
+    // of 5 rows — measuring it (rather than guessing a pixel value) keeps
+    // this correct regardless of font rendering/line-height quirks.
+    els.indexList.style.maxHeight = rows[5].offsetTop + "px";
   }
 
   function bindIndexDragReorder(){
@@ -744,7 +759,7 @@
     }
 
     bindTileDeleteButtons();
-    bindTileHoverEffects();
+    bindTileClickExpand();
   }
 
   function bindTileDeleteButtons(){
@@ -756,42 +771,48 @@
     });
   }
 
-  function bindTileHoverEffects(){
-    // The hover-expand grows the tile's real width (not a transform), so the
-    // flex row naturally reflows to fit it — no manual padding math needed,
-    // nothing gets clipped by the strip.
-    //
-    // Switching which image is "active" is deliberately sticky: a new image
-    // only takes over after it's been hovered continuously for HOVER_DWELL_MS,
-    // and the current one only releases after HOVER_LEAVE_MS with the cursor
-    // off it — so a quick pass near the edge between two images doesn't
-    // flicker between them; the cursor has to properly commit to the move.
+  function bindTileClickExpand(){
     Array.prototype.forEach.call(els.grid.querySelectorAll(".tile"), function(tile){
-      tile.addEventListener("mouseenter", function(){
-        clearTimeout(hoverLeaveTimer);
-        if(tile.classList.contains("hover-active")) return;
-        clearTimeout(hoverSwitchTimer);
-        hoverSwitchTimer = setTimeout(function(){
-          activateHoverTile(tile);
-        }, HOVER_DWELL_MS);
-      });
-      tile.addEventListener("mouseleave", function(){
-        clearTimeout(hoverSwitchTimer);
-        if(!tile.classList.contains("hover-active")) return;
-        hoverLeaveTimer = setTimeout(function(){
-          tile.classList.remove("hover-active");
-        }, HOVER_LEAVE_MS);
+      var imgBox = tile.querySelector(".tile-img");
+      if(!imgBox) return;
+      imgBox.addEventListener("click", function(){
+        toggleTileExpand(tile, imgBox);
       });
     });
   }
 
-  function activateHoverTile(tile){
-    var current = els.grid.querySelector(".tile.hover-active");
-    if(current && current !== tile) current.classList.remove("hover-active");
-    tile.classList.add("hover-active");
+  function toggleTileExpand(tile, imgBox){
+    var current = els.grid.querySelector(".tile.expanded");
+    var wasExpanded = tile.classList.contains("expanded");
+
+    if(current && current !== tile) collapseTile(current);
+
+    if(wasExpanded){
+      collapseTile(tile);
+      return;
+    }
+
+    // transform:scale grows the image from its own center in every direction
+    // (unlike a real width/height change, which only extends right/down) —
+    // but since a transform doesn't affect layout, the filmstrip's own
+    // overflow-y would clip the top half of that growth unless we reserve
+    // room for it first. Measuring the resting size before scaling gives an
+    // accurate amount regardless of screen size or font-rendering quirks.
+    var rect = imgBox.getBoundingClientRect();
+    var extra = rect.height * (EXPAND_SCALE - 1) / 2;
+    els.grid.style.paddingTop = extra + "px";
+    els.grid.style.paddingBottom = extra + "px";
+
+    tile.classList.add("expanded");
     // inline:"center" centers it in the horizontally-scrolling filmstrip;
     // block:"center" centers the whole page around it vertically too.
     tile.scrollIntoView({ behavior:"smooth", inline:"center", block:"center" });
+  }
+
+  function collapseTile(tile){
+    tile.classList.remove("expanded");
+    els.grid.style.paddingTop = "";
+    els.grid.style.paddingBottom = "";
   }
 
   function toggleScrollArrows(show){
@@ -844,14 +865,15 @@
   }
 
   function wireFilmstrip(){
-    // A vertical wheel gesture over the strip rotates it horizontally; native
-    // horizontal trackpad/touch scrolling passes through untouched.
+    // Any wheel/trackpad input over the strip moves it horizontally — never
+    // the page vertically — as long as there's actually content to scroll
+    // through. Native horizontal gestures (deltaX) pass straight through;
+    // vertical ones (deltaY, the common case for a mouse wheel) get
+    // redirected instead of falling through to the page.
     els.grid.addEventListener("wheel", function(e){
       if(els.grid.scrollWidth <= els.grid.clientWidth) return;
-      if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
-        e.preventDefault();
-        els.grid.scrollLeft += e.deltaY;
-      }
+      e.preventDefault();
+      els.grid.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX);
     }, { passive:false });
 
     // Seamlessly rewrap once the scroll position drifts near either end of
