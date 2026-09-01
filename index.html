@@ -141,13 +141,17 @@
   .index-list li:first-child{ border-top:none; }
   .index-row{
     width:fit-content; text-align:left; background:none; border:none; padding:3px 2px;
-    display:grid; grid-template-columns: auto auto auto; gap:2px; align-items:baseline;
+    display:grid; grid-template-columns: auto auto auto auto; gap:2px; align-items:baseline;
     font-weight:700; font-size:9.5px; letter-spacing:0.01em;
   }
   .index-row:hover .idx-title{ text-decoration:underline; }
   .idx-num{ color:var(--gray-light); font-variant-numeric:tabular-nums; padding-right:5px; }
   .idx-title{ text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:30ch; font-weight:400; }
   .idx-cat{ color:var(--gray); font-size:9px; text-transform:uppercase; letter-spacing:0.02em; }
+  .idx-handle{ color:var(--gray-light); font-size:9px; cursor:grab; }
+  .index-list li[draggable]{ cursor:grab; }
+  .index-list li.dragging{ opacity:0.4; }
+  .index-list li.drag-over{ border-top:1px solid var(--black); }
 
   /* ---------- Filmstrip ---------- */
   .filmstrip-wrap{ position:relative; }
@@ -521,6 +525,12 @@
       .then(function(snap){
         var items = [];
         snap.forEach(function(doc){ items.push(Object.assign({ key: doc.id }, doc.data())); });
+        // Sort by an explicit 'order' field so pieces can be manually reordered.
+        // Older pieces saved before reordering existed won't have one — give
+        // them their current (createdAt-based) position as a fallback rank,
+        // so they keep their place instead of jumping around.
+        items.forEach(function(item, i){ if(typeof item.order !== "number") item.order = i; });
+        items.sort(function(a, b){ return a.order - b.order; });
         return items;
       })
       .catch(function(err){ console.error(err); return []; });
@@ -532,6 +542,15 @@
   function deleteWork(key){
     if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured."));
     return db.collection("works").doc(key).delete();
+  }
+  function persistOrder(){
+    if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured."));
+    var batch = db.batch();
+    state.items.forEach(function(item, i){
+      item.order = i;
+      batch.update(db.collection("works").doc(item.key), { order: i });
+    });
+    return batch.commit();
   }
   function getText(key){
     if(!cloudAvailable()) return Promise.resolve(null);
@@ -609,17 +628,68 @@
     els.indexList.classList.toggle("open", state.indexOpen);
     els.indexToggle.setAttribute("aria-expanded", String(state.indexOpen));
 
+    var canDrag = state.isOwner;
     els.indexList.innerHTML = items.map(function(item, i){
       var num = "(" + String(i+1).padStart(2, "0") + ")";
-      return '<li><button type="button" class="index-row" data-key="'+escapeAttr(item.key)+'">' +
-        '<span class="idx-num">'+num+'</span>' +
-        '<span class="idx-title">'+escapeHtml(item.title || "Untitled")+'</span>' +
-        '<span class="idx-cat">'+escapeHtml(item.category || "")+'</span>' +
+      var handle = canDrag ? '<span class="idx-handle" aria-hidden="true">⠿</span>' : '';
+      return '<li data-key="'+escapeAttr(item.key)+'"' + (canDrag ? ' draggable="true"' : '') + '>' +
+        '<button type="button" class="index-row">' +
+          handle +
+          '<span class="idx-num">'+num+'</span>' +
+          '<span class="idx-title">'+escapeHtml(item.title || "Untitled")+'</span>' +
+          '<span class="idx-cat">'+escapeHtml(item.category || "")+'</span>' +
         '</button></li>';
     }).join("");
 
     Array.prototype.forEach.call(els.indexList.querySelectorAll(".index-row"), function(btn){
-      btn.addEventListener("click", function(){ jumpToItem(btn.getAttribute("data-key")); });
+      btn.addEventListener("click", function(){ jumpToItem(btn.closest("li").getAttribute("data-key")); });
+    });
+
+    if(canDrag) bindIndexDragReorder();
+  }
+
+  function bindIndexDragReorder(){
+    var draggedKey = null;
+    Array.prototype.forEach.call(els.indexList.querySelectorAll("li[draggable]"), function(li){
+      li.addEventListener("dragstart", function(e){
+        draggedKey = li.getAttribute("data-key");
+        li.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", draggedKey);
+      });
+      li.addEventListener("dragend", function(){
+        li.classList.remove("dragging");
+        Array.prototype.forEach.call(els.indexList.querySelectorAll("li"), function(x){ x.classList.remove("drag-over"); });
+      });
+      li.addEventListener("dragover", function(e){
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        li.classList.add("drag-over");
+      });
+      li.addEventListener("dragleave", function(){
+        li.classList.remove("drag-over");
+      });
+      li.addEventListener("drop", function(e){
+        e.preventDefault();
+        li.classList.remove("drag-over");
+        var targetKey = li.getAttribute("data-key");
+        if(!draggedKey || draggedKey === targetKey) return;
+        reorderItems(draggedKey, targetKey);
+      });
+    });
+  }
+
+  function reorderItems(draggedKey, targetKey){
+    var fromIdx = state.items.findIndex(function(i){ return i.key === draggedKey; });
+    var toIdx = state.items.findIndex(function(i){ return i.key === targetKey; });
+    if(fromIdx === -1 || toIdx === -1) return;
+    var moved = state.items.splice(fromIdx, 1)[0];
+    state.items.splice(toIdx, 0, moved);
+    render();
+    persistOrder().then(function(){
+      showToast("Order saved");
+    }).catch(function(err){
+      showToast("Couldn't save new order: " + (err && err.message ? err.message : "try again"), true);
     });
   }
 
@@ -856,6 +926,7 @@
     if(els.bioHint) els.bioHint.style.display = owner ? "" : "none";
     if(els.contactHint) els.contactHint.style.display = owner ? "" : "none";
     els.authBtn.textContent = owner ? ("Sign out (" + state.ownerEmail + ")") : "Sign in to edit";
+    renderIndex();
     renderGrid();
   }
 
@@ -1079,7 +1150,8 @@
       category: category,
       subtitle: detail,
       image: state.pendingImage,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      order: state.items.length
     };
 
     els.submitBtn.disabled = true;
