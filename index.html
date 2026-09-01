@@ -673,10 +673,15 @@
       els.indexList.style.maxHeight = "";
       return;
     }
-    // The 6th row's distance from the top of the list is exactly the height
-    // of 5 rows — measuring it (rather than guessing a pixel value) keeps
-    // this correct regardless of font rendering/line-height quirks.
-    els.indexList.style.maxHeight = rows[5].offsetTop + "px";
+    // getBoundingClientRect is always viewport-relative regardless of any
+    // ancestor's positioning, so the difference between the list's own top
+    // and the 6th row's top is exactly the height of the first 5 rows —
+    // unlike offsetTop, which measures from the nearest *positioned*
+    // ancestor and, since nothing here has position set, was effectively
+    // measuring from the top of the whole page.
+    var listTop = els.indexList.getBoundingClientRect().top;
+    var sixthTop = rows[5].getBoundingClientRect().top;
+    els.indexList.style.maxHeight = (sixthTop - listTop) + "px";
   }
 
   function bindIndexDragReorder(){
