@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio — Selected Work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --black:#0b0b0b;
@@ -13,6 +16,7 @@
     --hairline:#e3e3e3;
     --frame: 18px;
     --header-h: 56px;
+    --indent: clamp(24px, 6vw, 90px);
   }
 
   *{ box-sizing:border-box; }
@@ -24,16 +28,15 @@
 
   body{
     margin:0;
-    padding: var(--frame);
-    background: var(--black);
-    font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--white);
+    font-family:'IBM Plex Mono', 'SF Mono', 'Courier New', monospace;
     color: var(--black);
     -webkit-font-smoothing:antialiased;
   }
 
   .page{
     background: var(--white);
-    min-height: calc(100vh - (var(--frame) * 2));
+    min-height: 100vh;
     position:relative;
   }
 
@@ -54,15 +57,14 @@
     background: rgba(255,255,255,0.92);
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
-    border-bottom:1px solid var(--hairline);
   }
   .wordmark{
-    font-weight:700; font-size:11.5px; letter-spacing:0.08em;
+    font-weight:700; font-size:11.5px; letter-spacing:0.03em;
     text-transform:uppercase;
   }
   nav.mainnav{ display:flex; gap: clamp(14px, 3vw, 30px); }
   nav.mainnav a{
-    font-weight:700; font-size:11px; letter-spacing:0.08em;
+    font-weight:700; font-size:11px; letter-spacing:0.03em;
     text-transform:uppercase; padding:6px 0; position:relative;
     color:var(--gray);
     transition:color .15s ease;
@@ -98,21 +100,23 @@
   section{ scroll-margin-top: calc(var(--header-h) + 12px); padding: 30px clamp(16px, 3vw, 40px); }
   .section-top{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:16px; }
   h1.section-title{
-    font-weight:700; font-size:11px; letter-spacing:0.14em; margin:0;
+    font-weight:700; font-size:11px; letter-spacing:0.045em; margin:0;
     text-transform:uppercase;
   }
-  .section-sub{ font-size:11px; color:var(--gray); max-width:44ch; margin-top:5px; line-height:1.5; }
+  .section-sub{ font-size:10px; color:var(--gray); max-width:40ch; margin-top:4px; line-height:1.55; }
+  .section-num{ font-size:10px; color:var(--gray); margin:0; letter-spacing:0.02em; }
 
   /* ---------- Work controls ---------- */
   .work-tools{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .filter-wrap{ margin-left:var(--indent); margin-bottom:6px; }
   select.filter{
     appearance:none; -webkit-appearance:none;
-    border:1px solid var(--black); background:var(--white) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="%230b0b0b"/></svg>') no-repeat right 10px center;
-    padding:8px 28px 8px 11px; font-weight:700; font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase;
+    border:1px solid var(--black); background:var(--white) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="5"><path d="M0 0l4 5 4-5z" fill="%230b0b0b"/></svg>') no-repeat right 8px center;
+    padding:4px 22px 4px 8px; font-weight:700; font-size:9.5px; letter-spacing:0.01em; text-transform:uppercase;
   }
   .btn{
     border:1px solid var(--black); background:var(--black); color:var(--white);
-    font-weight:700; font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase;
+    font-weight:700; font-size:10.5px; letter-spacing:0.028em; text-transform:uppercase;
     padding:9px 15px; display:inline-flex; align-items:center; gap:8px;
     transition:opacity .15s ease;
   }
@@ -120,27 +124,30 @@
   .btn.ghost{ background:var(--white); color:var(--black); }
 
   /* ---------- Index list ---------- */
-  .index-wrap{ border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin-bottom:34px; }
+  .index-wrap{
+    border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin-bottom:34px;
+    margin-left:var(--indent); width:fit-content;
+  }
   .index-toggle{
-    width:100%; text-align:left; background:none; border:none; padding:10px 0;
-    display:flex; align-items:center; gap:7px; font-weight:700; font-size:10px; letter-spacing:0.1em;
+    text-align:left; background:none; border:none; padding:8px 0;
+    display:flex; align-items:center; gap:7px; font-weight:700; font-size:9px; letter-spacing:0.04em;
     color:var(--gray);
   }
   .index-toggle .chev{ transition:transform .15s ease; font-size:8px; }
   .index-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
-  .index-list{ list-style:none; margin:0; padding:0 0 10px; display:none; }
+  .index-list{ list-style:none; margin:0; padding:0 0 8px; display:none; }
   .index-list.open{ display:block; }
-  .index-list li{ border-top:1px solid var(--hairline); }
+  .index-list li{ border-top:1px solid var(--hairline); width:fit-content; }
   .index-list li:first-child{ border-top:none; }
   .index-row{
-    width:100%; text-align:left; background:none; border:none; padding:6px 2px;
-    display:grid; grid-template-columns: 48px 1fr auto; gap:10px; align-items:baseline;
-    font-weight:700; font-size:11px; letter-spacing:0.01em;
+    width:fit-content; text-align:left; background:none; border:none; padding:3px 2px;
+    display:grid; grid-template-columns: auto auto auto; gap:2px; align-items:baseline;
+    font-weight:700; font-size:9.5px; letter-spacing:0.01em;
   }
   .index-row:hover .idx-title{ text-decoration:underline; }
-  .idx-num{ color:var(--gray-light); font-variant-numeric:tabular-nums; }
-  .idx-title{ text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .idx-cat{ color:var(--gray); font-size:10px; text-transform:uppercase; letter-spacing:0.05em; }
+  .idx-num{ color:var(--gray-light); font-variant-numeric:tabular-nums; padding-right:5px; }
+  .idx-title{ text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:30ch; font-weight:400; }
+  .idx-cat{ color:var(--gray); font-size:9px; text-transform:uppercase; letter-spacing:0.02em; }
 
   /* ---------- Filmstrip ---------- */
   .filmstrip-wrap{ position:relative; }
@@ -148,7 +155,6 @@
     display:flex; align-items:flex-start; gap:10px;
     overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
     padding-bottom:2px; scrollbar-width:none; -ms-overflow-style:none;
-    transition:padding .35s ease;
   }
   .filmstrip::-webkit-scrollbar{ display:none; }
   .filmstrip .tile{ flex:0 0 auto; width:23vw; }
@@ -169,13 +175,13 @@
 
   .tile{ position:relative; }
   .tile-img{
-    position:relative; width:100%; aspect-ratio:3/4; background:#f2f2f2; overflow:hidden;
-    transition:transform .35s ease, box-shadow .35s ease;
+    position:relative; width:100%; aspect-ratio:4/5; background:#f2f2f2; overflow:hidden;
+    transition:aspect-ratio .35s ease, box-shadow .35s ease;
   }
   .tile-img img{ width:100%; height:100%; object-fit:contain; display:block; }
   .tile.flash .tile-img{ box-shadow: 0 0 0 3px var(--black); }
   .tile.hover-active{ z-index:5; }
-  .tile.hover-active .tile-img{ transform:scale(1.5); box-shadow:0 16px 34px rgba(0,0,0,0.25); }
+  .tile.hover-active .tile-img{ aspect-ratio:4/5.625; box-shadow:0 16px 34px rgba(0,0,0,0.25); }
   .tile-del{
     position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
     background:rgba(255,255,255,0.92); border:1px solid var(--black); color:var(--black);
@@ -183,8 +189,7 @@
     opacity:0.55; transition:opacity .15s ease;
   }
   .tile-del:hover, .tile-del:focus-visible{ opacity:1; }
-  .tile-caption{ margin-top:6px; transition:opacity .2s ease; }
-  .tile.hover-active .tile-caption{ opacity:0; }
+  .tile-caption{ margin-top:6px; }
   .tile-title{ font-weight:700; font-size:10.5px; letter-spacing:0.01em; text-transform:uppercase; }
   .tile-cat{ font-weight:700; font-size:9.5px; color:var(--gray); text-transform:uppercase; margin-top:1px; }
 
@@ -199,68 +204,25 @@
   .empty-state{
     border:1px dashed var(--gray-light); padding:54px 20px; text-align:center;
   }
-  .empty-state p{ font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 16px; color:var(--gray); }
-
-  /* ---------- Gallery / curated collections ---------- */
-  .title-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .gallery-toggle{
-    display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid var(--hairline);
-    padding:5px 10px; font-weight:700; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray);
-    transition:color .15s ease, border-color .15s ease;
-  }
-  .gallery-toggle:hover, .gallery-toggle[aria-expanded="true"]{ color:var(--black); border-color:var(--black); }
-  .gallery-toggle .chev{ transition:transform .15s ease; font-size:8px; }
-  .gallery-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
-
-  .collection-banner{ font-size:11px; color:var(--gray); margin:6px 0 0; }
-  .collection-banner button{ background:none; border:none; color:var(--black); font-weight:700; text-decoration:underline; font-size:11px; padding:0; }
-
-  .gallery-menu{ display:none; border:1px solid var(--hairline); margin-top:10px; max-width:320px; }
-  .gallery-menu.open{ display:block; }
-  .gallery-list{ list-style:none; margin:0; padding:4px 0; }
-  .gallery-list li{ border-top:1px solid var(--hairline); }
-  .gallery-list li:first-child{ border-top:none; }
-  .gallery-row-wrap{ display:flex; align-items:center; }
-  .gallery-row{
-    flex:1; text-align:left; background:none; border:none; padding:9px 12px;
-    font-weight:700; font-size:11px; letter-spacing:0.03em; text-transform:uppercase; color:var(--gray);
-  }
-  .gallery-row:hover{ color:var(--black); }
-  .gallery-row.active{ color:var(--black); }
-  .gallery-row.new{ color:var(--black); }
-  .gallery-count{ color:var(--gray-light); font-weight:400; text-transform:none; letter-spacing:normal; }
-  .gallery-del{
-    flex:0 0 auto; background:none; border:none; color:var(--gray-light); font-size:14px; padding:0 12px; opacity:0.6;
-  }
-  .gallery-del:hover{ opacity:1; color:#b3261e; }
-
-  .collection-picklist{ list-style:none; margin:0; padding:0; max-height:220px; overflow:auto; border:1px solid var(--hairline); }
-  .collection-picklist li{ border-top:1px solid var(--hairline); }
-  .collection-picklist li:first-child{ border-top:none; }
-  .collection-picklist label{
-    display:flex; align-items:center; gap:10px; padding:8px 10px; font-size:12px; font-weight:400;
-    text-transform:none; letter-spacing:normal; color:var(--black); cursor:pointer;
-  }
-  .collection-picklist img{ width:34px; height:34px; object-fit:cover; flex:0 0 auto; background:#f2f2f2; }
-  .collection-picklist input{ width:auto; flex:0 0 auto; }
-  .collection-empty{ padding:14px 10px; font-size:11px; color:var(--gray); text-align:center; }
+  .empty-state p{ font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.018em; margin:0 0 16px; color:var(--gray); }
 
   /* ---------- Info / contact ---------- */
   .editable{
-    font-size:13px; line-height:1.65; max-width:58ch; min-height:1.4em;
+    font-size:9.5px; line-height:1.65; max-width:58ch; min-height:1.4em;
     border-left:2px solid transparent; padding-left:12px; margin-left:-14px;
   }
   .editable:hover, .editable:focus{ border-left-color:var(--hairline); }
   .editable:focus{ outline:none; border-left-color:var(--black); }
-  .field-hint{ font-size:10px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.08em; margin-top:16px; }
+  .field-hint{ font-size:9px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.03em; margin-top:16px; }
+  #info, #contact{ padding-left: calc(clamp(16px, 3vw, 40px) + var(--indent)); }
 
   footer.sitefoot{
     border-top:1px solid var(--hairline); padding:22px clamp(16px,3vw,40px) 30px;
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
-    font-size:10.5px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.06em;
+    font-size:10.5px; color:var(--gray-light); text-transform:uppercase; letter-spacing:0.024em;
   }
   footer.sitefoot .foot-actions{ display:flex; gap:16px; flex-wrap:wrap; }
-  footer.sitefoot button{ background:none; border:none; color:var(--gray-light); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; padding:0; }
+  footer.sitefoot button{ background:none; border:none; color:var(--gray-light); font-size:10.5px; text-transform:uppercase; letter-spacing:0.024em; padding:0; }
   footer.sitefoot button:hover{ color:var(--black); text-decoration:underline; }
 
   /* ---------- Floating add button ---------- */
@@ -285,17 +247,17 @@
   .modal-close{
     position:absolute; top:14px; right:14px; background:none; border:none; font-size:20px; width:30px; height:30px;
   }
-  .modal h2{ font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 18px; }
+  .modal h2{ font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:0.02em; margin:0 0 18px; }
   .dropzone{
     border:1.5px dashed var(--gray-light); padding:20px; text-align:center; cursor:pointer;
-    font-weight:700; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--gray);
+    font-weight:700; font-size:11px; letter-spacing:0.024em; text-transform:uppercase; color:var(--gray);
     margin-bottom:16px;
   }
   .dropzone.drag{ border-color:var(--black); color:var(--black); }
   .dropzone.uploading{ opacity:0.55; pointer-events:none; }
   .dropzone img{ max-width:100%; max-height:180px; display:block; margin:0 auto 10px; }
   .field{ margin-bottom:14px; }
-  .field label{ display:block; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
+  .field label{ display:block; font-size:10px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
   .field input{ width:100%; border:none; border-bottom:1px solid var(--hairline); padding:8px 2px; font-size:14px; }
   .field input:focus{ border-bottom-color:var(--black); outline:none; }
   .modal-actions{ display:flex; gap:10px; margin-top:20px; }
@@ -333,24 +295,18 @@
     <section id="work">
       <div class="section-top">
         <div>
-          <div class="title-row">
-            <h1 class="section-title">Selected Work</h1>
-            <button class="gallery-toggle u-caps" id="galleryToggle" type="button" aria-expanded="false" aria-controls="galleryMenu">
-              Gallery <span class="chev">▾</span>
-            </button>
-          </div>
-          <p class="section-sub">An ongoing archive of projects. Scroll or drag through the strip below — it loops.</p>
-          <p class="collection-banner" id="collectionBanner" hidden></p>
-          <div class="gallery-menu" id="galleryMenu">
-            <ul class="gallery-list" id="galleryList"></ul>
-          </div>
+          <h1 class="section-title visually-hidden">Selected Work</h1>
+          <p class="section-sub">Selected work — an ongoing archive of projects. Scroll or drag through the strip below, it loops.</p>
         </div>
         <div class="work-tools">
-          <select class="filter u-caps" id="categoryFilter" aria-label="Filter by category">
-            <option value="ALL">All work</option>
-          </select>
           <button class="btn" id="addWorkBtn" type="button">+ Add work</button>
         </div>
+      </div>
+
+      <div class="filter-wrap">
+        <select class="filter u-caps" id="categoryFilter" aria-label="Filter by category">
+          <option value="ALL">All work</option>
+        </select>
       </div>
 
       <div class="index-wrap">
@@ -368,13 +324,15 @@
     </section>
 
     <section id="info">
-      <h1 class="section-title">Info</h1>
+      <h1 class="section-title visually-hidden">Info</h1>
+      <p class="section-num">(02)</p>
       <div class="editable" id="bioText" contenteditable="false" role="textbox" aria-multiline="true" aria-label="Bio"></div>
       <p class="field-hint" id="bioHint">Click the text above to edit your bio. It saves automatically.</p>
     </section>
 
     <section id="contact">
-      <h1 class="section-title">Contact</h1>
+      <h1 class="section-title visually-hidden">Contact</h1>
+      <p class="section-num">(03)</p>
       <div class="editable" id="contactText" contenteditable="false" role="textbox" aria-multiline="true" aria-label="Contact details"></div>
       <p class="field-hint" id="contactHint">Click the text above to edit. It saves automatically.</p>
     </section>
@@ -447,29 +405,6 @@
   </div>
 </div>
 
-<!-- Collection modal (owner only) -->
-<div class="modal-backdrop" id="collectionModalBackdrop">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="collectionModalTitle">
-    <button class="modal-close" id="collectionModalClose" aria-label="Close">×</button>
-    <h2 id="collectionModalTitle">New collection</h2>
-    <form id="collectionForm">
-      <div class="field">
-        <label for="collectionNameInput">Name</label>
-        <input type="text" id="collectionNameInput" required maxlength="60" placeholder="e.g. Editorial">
-      </div>
-      <div class="field">
-        <label>Pieces</label>
-        <ul class="collection-picklist" id="collectionPicklist"></ul>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn ghost" id="collectionCancelBtn">Cancel</button>
-        <button type="submit" class="btn" id="collectionSubmitBtn">Create</button>
-      </div>
-      <p class="modal-status" id="collectionModalStatus"></p>
-    </form>
-  </div>
-</div>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- Firebase (compat build) — powers the live gallery/bio/contact storage -->
@@ -482,7 +417,6 @@
   "use strict";
 
   var ITEM_PREFIX = "item:";
-  var COLLECTION_PREFIX = "collection:";
   var MAX_DIM = 1600;
   var JPEG_QUALITY = 0.82;
 
@@ -516,7 +450,11 @@
     }
   }
 
-  var state = { items: [], category: "ALL", indexOpen: true, pendingImage: null, setWidth: 0, loadingGallery: true, isOwner: false, ownerEmail: "", collections: [], activeCollection: null, galleryOpen: false };
+  var state = { items: [], category: "ALL", indexOpen: true, pendingImage: null, setWidth: 0, loadingGallery: true, isOwner: false, ownerEmail: "" };
+  var hoverSwitchTimer = null;
+  var hoverLeaveTimer = null;
+  var HOVER_DWELL_MS = 420; // how long a new image must be hovered before it takes over
+  var HOVER_LEAVE_MS = 220; // grace period before the active image releases
 
   var els = {};
   function q(id){ return document.getElementById(id); }
@@ -550,11 +488,6 @@
     els.authModalBackdrop = q("authModalBackdrop");
     els.bioHint = q("bioHint");
     els.contactHint = q("contactHint");
-    els.galleryToggle = q("galleryToggle");
-    els.galleryMenu = q("galleryMenu");
-    els.galleryList = q("galleryList");
-    els.collectionBanner = q("collectionBanner");
-    els.collectionModalBackdrop = q("collectionModalBackdrop");
 
     q("year").textContent = new Date().getFullYear();
     wireNav();
@@ -563,8 +496,6 @@
     wireModal();
     wireEditableFields();
     wireAuth();
-    wireGallery();
-    wireCollections();
     els.resetBtn.addEventListener("click", handleReset);
 
     init();
@@ -613,32 +544,12 @@
     return db.collection("site").doc(key).set({ value: value });
   }
 
-  function listCollections(){
-    if(!cloudAvailable()) return Promise.resolve([]);
-    return db.collection("collections").orderBy("createdAt", "asc").get()
-      .then(function(snap){
-        var items = [];
-        snap.forEach(function(doc){ items.push(Object.assign({ key: doc.id }, doc.data())); });
-        return items;
-      })
-      .catch(function(err){ console.error(err); return []; });
-  }
-  function saveCollection(key, obj){
-    if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured."));
-    return db.collection("collections").doc(key).set(obj);
-  }
-  function deleteCollection(key){
-    if(!cloudAvailable()) return Promise.reject(new Error("Firebase isn't configured."));
-    return db.collection("collections").doc(key).delete();
-  }
-
   /* ---------------- Init / load ---------------- */
   function init(){
     if(!cloudAvailable()){
       showToast("Firebase isn't configured yet — see FIREBASE_CONFIG in the code.", true);
     }
     loadGallery();
-    loadCollections();
     loadInfoAndContact();
   }
 
@@ -649,13 +560,6 @@
       state.items = items;
       state.loadingGallery = false;
       render();
-    });
-  }
-
-  function loadCollections(){
-    listCollections().then(function(items){
-      state.collections = items;
-      renderGalleryMenu();
     });
   }
 
@@ -675,11 +579,6 @@
 
   function filteredItems(){
     var items = loadedItems();
-    if(state.activeCollection){
-      var col = state.collections.find(function(c){ return c.key === state.activeCollection; });
-      var keys = (col && col.itemKeys) ? col.itemKeys : [];
-      items = items.filter(function(i){ return keys.indexOf(i.key) !== -1; });
-    }
     if(state.category === "ALL") return items;
     return items.filter(function(i){ return (i.category || "").toUpperCase() === state.category; });
   }
@@ -711,7 +610,7 @@
     els.indexToggle.setAttribute("aria-expanded", String(state.indexOpen));
 
     els.indexList.innerHTML = items.map(function(item, i){
-      var num = "P" + String(i+1).padStart(3, "0");
+      var num = "(" + String(i+1).padStart(2, "0") + ")";
       return '<li><button type="button" class="index-row" data-key="'+escapeAttr(item.key)+'">' +
         '<span class="idx-num">'+num+'</span>' +
         '<span class="idx-title">'+escapeHtml(item.title || "Untitled")+'</span>' +
@@ -721,74 +620,6 @@
 
     Array.prototype.forEach.call(els.indexList.querySelectorAll(".index-row"), function(btn){
       btn.addEventListener("click", function(){ jumpToItem(btn.getAttribute("data-key")); });
-    });
-  }
-
-  function renderGalleryMenu(){
-    var rows = [];
-    rows.push(
-      '<li><button type="button" class="gallery-row' + (!state.activeCollection ? ' active' : '') + '" data-collection="">All work</button></li>'
-    );
-    state.collections.forEach(function(c){
-      var isActive = state.activeCollection === c.key;
-      var count = c.itemKeys ? c.itemKeys.length : 0;
-      var delBtn = state.isOwner
-        ? '<button type="button" class="gallery-del" data-key="'+escapeAttr(c.key)+'" aria-label="Delete collection">×</button>'
-        : '';
-      rows.push(
-        '<li><span class="gallery-row-wrap">' +
-          '<button type="button" class="gallery-row' + (isActive ? ' active' : '') + '" data-collection="'+escapeAttr(c.key)+'">' +
-            escapeHtml(c.name) + ' <span class="gallery-count">(' + count + ')</span>' +
-          '</button>' +
-          delBtn +
-        '</span></li>'
-      );
-    });
-    if(state.isOwner){
-      rows.push('<li><button type="button" class="gallery-row new" id="newCollectionBtn">+ New collection</button></li>');
-    }
-    els.galleryList.innerHTML = rows.join("");
-
-    Array.prototype.forEach.call(els.galleryList.querySelectorAll(".gallery-row:not(.new)"), function(btn){
-      btn.addEventListener("click", function(){
-        state.activeCollection = btn.getAttribute("data-collection") || null;
-        state.galleryOpen = false;
-        renderGalleryMenu();
-        applyGalleryToggleUI();
-        renderGrid();
-        renderActiveCollectionBanner();
-      });
-    });
-    Array.prototype.forEach.call(els.galleryList.querySelectorAll(".gallery-del"), function(btn){
-      btn.addEventListener("click", function(e){
-        e.stopPropagation();
-        handleDeleteCollection(btn.getAttribute("data-key"));
-      });
-    });
-    var newBtn = q("newCollectionBtn");
-    if(newBtn) newBtn.addEventListener("click", openCollectionModal);
-  }
-
-  function applyGalleryToggleUI(){
-    els.galleryMenu.classList.toggle("open", state.galleryOpen);
-    els.galleryToggle.setAttribute("aria-expanded", String(state.galleryOpen));
-  }
-
-  function renderActiveCollectionBanner(){
-    if(!state.activeCollection){
-      els.collectionBanner.hidden = true;
-      els.collectionBanner.innerHTML = "";
-      return;
-    }
-    var col = state.collections.find(function(c){ return c.key === state.activeCollection; });
-    var name = col ? col.name : "Collection";
-    els.collectionBanner.hidden = false;
-    els.collectionBanner.innerHTML = 'Viewing "' + escapeHtml(name) + '" · <button type="button" id="clearCollectionBtn">Clear</button>';
-    q("clearCollectionBtn").addEventListener("click", function(){
-      state.activeCollection = null;
-      renderGalleryMenu();
-      renderGrid();
-      renderActiveCollectionBanner();
     });
   }
 
@@ -847,29 +678,41 @@
   }
 
   function bindTileHoverEffects(){
-    // Expanding a tile from 3:4 to 4.5:6 (the same ratio, 1.5x bigger) means
-    // it needs 1/4 of its resting height as extra room above AND below, or
-    // the filmstrip's own clipping would cut it off — so we grow the strip's
-    // padding to fit before the scale kicks in, measuring the resting size
-    // first since a transformed element's rect would already reflect the
-    // larger, scaled-up size.
+    // The 4:5 -> 4:5.625 grow is a real aspect-ratio change, not a transform,
+    // so the flex row naturally reflows to fit the taller tile — no manual
+    // padding math needed, nothing gets clipped by the strip.
+    //
+    // Switching which image is "active" is deliberately sticky: a new image
+    // only takes over after it's been hovered continuously for HOVER_DWELL_MS,
+    // and the current one only releases after HOVER_LEAVE_MS with the cursor
+    // off it — so a quick pass near the edge between two images doesn't
+    // flicker between them; the cursor has to properly commit to the move.
     Array.prototype.forEach.call(els.grid.querySelectorAll(".tile"), function(tile){
-      var imgBox = tile.querySelector(".tile-img");
       tile.addEventListener("mouseenter", function(){
-        if(imgBox){
-          var extra = imgBox.getBoundingClientRect().height * 0.25;
-          els.grid.style.paddingTop = extra + "px";
-          els.grid.style.paddingBottom = extra + "px";
-        }
-        tile.classList.add("hover-active");
-        tile.scrollIntoView({ behavior:"smooth", inline:"center", block:"nearest" });
+        clearTimeout(hoverLeaveTimer);
+        if(tile.classList.contains("hover-active")) return;
+        clearTimeout(hoverSwitchTimer);
+        hoverSwitchTimer = setTimeout(function(){
+          activateHoverTile(tile);
+        }, HOVER_DWELL_MS);
       });
       tile.addEventListener("mouseleave", function(){
-        tile.classList.remove("hover-active");
-        els.grid.style.paddingTop = "";
-        els.grid.style.paddingBottom = "";
+        clearTimeout(hoverSwitchTimer);
+        if(!tile.classList.contains("hover-active")) return;
+        hoverLeaveTimer = setTimeout(function(){
+          tile.classList.remove("hover-active");
+        }, HOVER_LEAVE_MS);
       });
     });
+  }
+
+  function activateHoverTile(tile){
+    var current = els.grid.querySelector(".tile.hover-active");
+    if(current && current !== tile) current.classList.remove("hover-active");
+    tile.classList.add("hover-active");
+    // inline:"center" centers it in the horizontally-scrolling filmstrip;
+    // block:"center" centers the whole page around it vertically too.
+    tile.scrollIntoView({ behavior:"smooth", inline:"center", block:"center" });
   }
 
   function toggleScrollArrows(show){
@@ -1014,7 +857,6 @@
     if(els.contactHint) els.contactHint.style.display = owner ? "" : "none";
     els.authBtn.textContent = owner ? ("Sign out (" + state.ownerEmail + ")") : "Sign in to edit";
     renderGrid();
-    renderGalleryMenu();
   }
 
   function openAuthModal(){
@@ -1073,103 +915,6 @@
         applyOwnerUI();
       });
     }
-  }
-
-  /* ---------------- Gallery (curated collections) ---------------- */
-  function wireGallery(){
-    els.galleryToggle.addEventListener("click", function(){
-      state.galleryOpen = !state.galleryOpen;
-      applyGalleryToggleUI();
-    });
-  }
-
-  function openCollectionModal(){
-    q("collectionForm").reset();
-    q("collectionModalStatus").textContent = "";
-    q("collectionModalStatus").classList.remove("err");
-    var list = state.items.map(function(item){
-      return '<li><label>' +
-        '<input type="checkbox" value="'+escapeAttr(item.key)+'">' +
-        '<img src="'+item.image+'" alt="">' +
-        '<span>'+escapeHtml(item.title || "Untitled")+'</span>' +
-        '</label></li>';
-    }).join("");
-    q("collectionPicklist").innerHTML = list || '<li class="collection-empty">No pieces yet — add some work first.</li>';
-    els.collectionModalBackdrop.classList.add("open");
-    setTimeout(function(){ q("collectionNameInput").focus(); }, 30);
-  }
-  function closeCollectionModal(){
-    els.collectionModalBackdrop.classList.remove("open");
-  }
-
-  function wireCollections(){
-    q("collectionModalClose").addEventListener("click", closeCollectionModal);
-    q("collectionCancelBtn").addEventListener("click", closeCollectionModal);
-    els.collectionModalBackdrop.addEventListener("click", function(e){
-      if(e.target === els.collectionModalBackdrop) closeCollectionModal();
-    });
-    document.addEventListener("keydown", function(e){
-      if(e.key === "Escape" && els.collectionModalBackdrop.classList.contains("open")) closeCollectionModal();
-    });
-    q("collectionForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      submitCollection();
-    });
-  }
-
-  function submitCollection(){
-    var name = q("collectionNameInput").value.trim();
-    var statusEl = q("collectionModalStatus");
-    if(!name){
-      statusEl.textContent = "Give the collection a name.";
-      statusEl.classList.add("err");
-      return;
-    }
-    var checked = Array.prototype.slice.call(q("collectionPicklist").querySelectorAll('input[type="checkbox"]:checked'));
-    var itemKeys = checked.map(function(cb){ return cb.value; });
-    if(!itemKeys.length){
-      statusEl.textContent = "Pick at least one piece.";
-      statusEl.classList.add("err");
-      return;
-    }
-
-    var key = COLLECTION_PREFIX + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-    var record = { name: name, itemKeys: itemKeys, createdAt: Date.now() };
-    var submitBtn = q("collectionSubmitBtn");
-
-    submitBtn.disabled = true;
-    statusEl.textContent = "Saving…";
-    statusEl.classList.remove("err");
-
-    saveCollection(key, record).then(function(){
-      state.collections.push(Object.assign({ key: key }, record));
-      closeCollectionModal();
-      renderGalleryMenu();
-      showToast("Collection created");
-    }).catch(function(err){
-      statusEl.textContent = "Couldn't save: " + (err && err.message ? err.message : "unknown error");
-      statusEl.classList.add("err");
-    }).finally(function(){
-      submitBtn.disabled = false;
-    });
-  }
-
-  function handleDeleteCollection(key){
-    var col = state.collections.find(function(c){ return c.key === key; });
-    var name = col ? col.name : "this collection";
-    if(!window.confirm('Delete the "'+name+'" collection? The pieces in it stay in your gallery.')) return;
-    deleteCollection(key).then(function(){
-      state.collections = state.collections.filter(function(c){ return c.key !== key; });
-      if(state.activeCollection === key){
-        state.activeCollection = null;
-        renderGrid();
-        renderActiveCollectionBanner();
-      }
-      renderGalleryMenu();
-      showToast("Collection deleted");
-    }).catch(function(err){
-      showToast("Couldn't delete: " + (err && err.message ? err.message : "try again"), true);
-    });
   }
 
   function wireEditableFields(){
