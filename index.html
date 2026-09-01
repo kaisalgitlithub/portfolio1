@@ -571,6 +571,13 @@
     }
     loadGallery();
     loadInfoAndContact();
+
+    // The initial render measures row heights against a fallback font
+    // (IBM Plex Mono loads with font-display:swap), so once the real font is
+    // in, re-measure the index cap in case row heights shifted slightly.
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(function(){ applyIndexScrollCap(); });
+    }
   }
 
   function loadGallery(){
