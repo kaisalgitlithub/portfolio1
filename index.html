@@ -196,6 +196,14 @@
     opacity:0.55; transition:opacity .15s ease;
   }
   .tile-del:hover, .tile-del:focus-visible{ opacity:1; }
+  .tile-edit{
+    position:absolute; top:6px; left:6px; width:22px; height:22px; border-radius:50%;
+    background:rgba(255,255,255,0.92); border:1px solid var(--black); color:var(--black);
+    font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+    opacity:0.55; transition:opacity .15s ease;
+  }
+  .tile-edit:hover, .tile-edit:focus-visible{ opacity:1; }
+  .dropzone.readonly{ pointer-events:none; opacity:0.85; }
   .tile-caption{ margin-top:6px; }
   .tile-title{ font-weight:700; font-size:10.5px; letter-spacing:0.01em; text-transform:uppercase; }
   .tile-cat{ font-weight:700; font-size:9.5px; color:var(--gray); text-transform:uppercase; margin-top:1px; }
@@ -458,7 +466,7 @@
     }
   }
 
-  var state = { items: [], category: "ALL", indexOpen: true, pendingImage: null, setWidth: 0, loadingGallery: true, isOwner: false, ownerEmail: "" };
+  var state = { items: [], category: "ALL", indexOpen: true, pendingImage: null, editingKey: null, setWidth: 0, loadingGallery: true, isOwner: false, ownerEmail: "" };
   var EXPAND_SCALE = 1.35; // must match the transform:scale() value in .tile.expanded .tile-img
 
   var els = {};
@@ -739,7 +747,7 @@
         (state.isOwner ? '<button class="btn" type="button" id="emptyAddBtn">+ Add your first piece</button>' : '') +
         '</div>';
       var eb = q("emptyAddBtn");
-      if(eb) eb.addEventListener("click", openModal);
+      if(eb) eb.addEventListener("click", function(){ openModal(); });
       toggleScrollArrows(false);
       return;
     }
@@ -771,6 +779,7 @@
     }
 
     bindTileDeleteButtons();
+    bindTileEditButtons();
     bindTileClickExpand();
   }
 
@@ -779,6 +788,16 @@
       btn.addEventListener("click", function(e){
         e.stopPropagation();
         handleDelete(btn.getAttribute("data-key"));
+      });
+    });
+  }
+
+  function bindTileEditButtons(){
+    Array.prototype.forEach.call(els.grid.querySelectorAll(".tile-edit"), function(btn){
+      btn.addEventListener("click", function(e){
+        e.stopPropagation();
+        var item = state.items.find(function(i){ return i.key === btn.getAttribute("data-key"); });
+        if(item) openModal(item);
       });
     });
   }
@@ -837,9 +856,13 @@
     var delBtn = state.isOwner
       ? '<button class="tile-del" type="button" data-key="'+escapeAttr(item.key)+'" aria-label="Delete this piece">×</button>'
       : '';
+    var editBtn = state.isOwner
+      ? '<button class="tile-edit" type="button" data-key="'+escapeAttr(item.key)+'" aria-label="Edit this piece">✎</button>'
+      : '';
     return '<div class="tile" data-key="'+escapeAttr(item.key)+'">' +
       '<div class="tile-img"><img src="'+item.image+'" alt="'+escapeAttr(item.title || "")+'" loading="lazy"></div>' +
       delBtn +
+      editBtn +
       '<div class="tile-caption">' +
         '<div class="tile-title">'+escapeHtml(item.title || "Untitled")+'</div>' +
         '<div class="tile-cat">'+escapeHtml([item.category, item.subtitle].filter(Boolean).join(" · "))+'</div>' +
@@ -946,8 +969,8 @@
   }
 
   function wireWorkControls(){
-    els.addWorkBtn.addEventListener("click", openModal);
-    els.fabAdd.addEventListener("click", openModal);
+    els.addWorkBtn.addEventListener("click", function(){ openModal(); });
+    els.fabAdd.addEventListener("click", function(){ openModal(); });
     els.categoryFilter.addEventListener("change", function(){
       state.category = els.categoryFilter.value;
       renderGrid();
@@ -1077,17 +1100,31 @@
   }
 
   /* ---------------- Modal / upload ---------------- */
-  function openModal(){
-    state.pendingImage = null;
+  function openModal(editItem){
+    state.editingKey = editItem ? editItem.key : null;
+    state.pendingImage = editItem ? editItem.image : null;
     els.uploadForm.reset();
-    els.dropzoneLabel.textContent = "Click or drop an image";
-    els.dropzone.innerHTML = '<span id="dropzoneLabel">Click or drop an image</span>';
-    els.dropzoneLabel = q("dropzoneLabel");
+    q("modalTitle").textContent = editItem ? "Edit work" : "Add work";
+    els.submitBtn.textContent = editItem ? "Save changes" : "Add to index";
+
+    if(editItem){
+      els.dropzone.innerHTML = '<img src="'+editItem.image+'" alt="Current image">';
+      els.dropzone.classList.add("readonly");
+      els.titleInput.value = editItem.title || "";
+      els.categoryInput.value = editItem.category || "";
+      els.detailInput.value = editItem.subtitle || "";
+    } else {
+      els.dropzone.classList.remove("readonly");
+      els.dropzone.innerHTML = '<span id="dropzoneLabel">Click or drop an image</span>';
+      els.dropzoneLabel = q("dropzoneLabel");
+    }
+
     setModalStatus("");
     els.modalBackdrop.classList.add("open");
     setTimeout(function(){ els.titleInput.focus(); }, 30);
   }
   function closeModal(){
+    state.editingKey = null;
     els.modalBackdrop.classList.remove("open");
   }
 
@@ -1185,6 +1222,32 @@
     var detail = els.detailInput.value.trim();
 
     if(!title){ setModalStatus("Give the piece a title.", true); els.titleInput.focus(); return; }
+
+    if(state.editingKey){
+      var editKey = state.editingKey;
+      var existing = state.items.find(function(i){ return i.key === editKey; });
+      if(!existing){ setModalStatus("Couldn't find that piece — try reopening it.", true); return; }
+
+      var updated = Object.assign({}, existing, { title: title, category: category, subtitle: detail });
+      delete updated.key;
+
+      els.submitBtn.disabled = true;
+      setModalStatus("Saving…");
+
+      saveWork(editKey, updated).then(function(){
+        var idx = state.items.findIndex(function(i){ return i.key === editKey; });
+        if(idx > -1) state.items[idx] = Object.assign({ key: editKey }, updated);
+        closeModal();
+        render();
+        showToast("Changes saved");
+      }).catch(function(err){
+        setModalStatus("Couldn't save: " + (err && err.message ? err.message : "unknown error"), true);
+      }).finally(function(){
+        els.submitBtn.disabled = false;
+      });
+      return;
+    }
+
     if(!state.pendingImage){ setModalStatus("Choose an image first.", true); return; }
 
     var key = ITEM_PREFIX + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
